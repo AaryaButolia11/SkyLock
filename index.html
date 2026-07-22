@@ -1,4 +1,4 @@
-<!doctype html>
+<!-- <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -1421,6 +1421,2572 @@
                 type="text"
                 id="apiBase"
                 value="http://127.0.0.1:8000"
+                class="mono"
+              />
+            </details>
+
+            <div class="btn-row">
+              <button
+                class="btn-primary btn-full"
+                id="authSubmitBtn"
+                onclick="submitAuth()"
+              >
+                Log in
+              </button>
+            </div>
+            <div id="authMsg"></div>
+          </div>
+        </section>
+      </div>
+
+      <div id="page-app" class="hidden">
+        <div class="welcome-bar">
+          <div>
+            <h2 id="welcomeHeading">Where to?</h2>
+            <p>Search live inventory or jump straight to a booking below.</p>
+          </div>
+          <div class="welcome-stats">
+            <div>
+              <strong id="statFlights">—</strong><span>Flights listed</span>
+            </div>
+            <div>
+              <strong id="statBookings">—</strong><span>Your bookings</span>
+            </div>
+          </div>
+        </div>
+
+        <section id="searchSection">
+          <div class="section-title" style="margin-bottom: 16px">
+            Search flights
+          </div>
+          <div class="card">
+            <div class="search-row">
+              <div>
+                <label for="origin">Origin</label>
+                <select id="origin" class="mono"></select>
+              </div>
+              <div>
+                <label for="destination">Destination</label>
+                <select id="destination" class="mono"></select>
+              </div>
+              <div>
+                <label for="depDate">Date</label>
+                <input type="date" id="depDate" />
+              </div>
+              <button class="btn-primary" onclick="searchFlights()">
+                Search
+              </button>
+            </div>
+            <div class="search-toolbar">
+              <button
+                class="btn-ghost"
+                onclick="clearSearch()"
+                style="padding: 4px 0"
+              >
+                Clear filters
+              </button>
+              <div class="sort-control">
+                <label for="sortBy" style="margin: 0">Sort by</label>
+                <select id="sortBy" onchange="renderFlights()">
+                  <option value="departure">Departure time</option>
+                  <option value="price-asc">Price: low to high</option>
+                  <option value="price-desc">Price: high to low</option>
+                </select>
+              </div>
+            </div>
+            <div id="searchMsg"></div>
+          </div>
+        </section>
+
+        <section id="resultsSection">
+          <div class="section-title grow" style="margin-bottom: 16px">
+            Flights
+          </div>
+          <div id="flightResults" class="flight-list">
+            <div class="skeleton"></div>
+            <div class="skeleton"></div>
+            <div class="skeleton"></div>
+          </div>
+        </section>
+
+        <section id="seatSection" class="hidden">
+          <div class="section-head">
+            <div class="section-title" style="margin-bottom: 0">
+              Select seats &mdash;
+              <span id="seatFlightLabel" class="mono"></span>
+            </div>
+            <div class="app-nav" style="background: rgba(255, 255, 255, 0.55)">
+              <button
+                id="modeSingle"
+                class="active"
+                onclick="setBookingMode('single')"
+              >
+                Single seat
+              </button>
+              <button id="modeGroup" onclick="setBookingMode('group')">
+                Group booking
+              </button>
+            </div>
+          </div>
+          <div class="card" style="margin-top: 16px">
+            <div class="seat-legend">
+              <span><span class="swatch sw-open"></span>Available</span>
+              <span><span class="swatch sw-selected"></span>Selected</span>
+              <span
+                ><span class="swatch sw-locked"></span>Locked by another
+                user</span
+              >
+              <span><span class="swatch sw-booked"></span>Booked</span>
+              <span>Teal outline = Business class</span>
+            </div>
+            <div class="seat-grid" id="seatGrid"></div>
+
+            <div class="book-bar" id="bookBar">
+              <div>
+                Seat
+                <strong id="selectedSeatLabel" class="mono"></strong> locked
+                &mdash; complete booking within
+                <span class="timer" id="lockTimer">5:00</span>
+              </div>
+            </div>
+
+            <div
+              class="card"
+              id="passengerFormSingle"
+              style="
+                display: none;
+                margin-top: 14px;
+                background: rgba(255, 255, 255, 0.5);
+              "
+            >
+              <div class="section-title" style="margin-bottom: 14px">
+                Passenger details
+              </div>
+              <div class="grid-2">
+                <div>
+                  <label for="pFullName">Full name</label>
+                  <input type="text" id="pFullName" placeholder="As per ID" />
+                </div>
+                <div>
+                  <label for="pAge">Age</label>
+                  <input
+                    type="number"
+                    id="pAge"
+                    min="1"
+                    max="120"
+                    placeholder="e.g. 29"
+                  />
+                </div>
+                <div>
+                  <label for="pGender">Gender</label>
+                  <select id="pGender">
+                    <option value="">Select</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="pMeal">Meal preference</label>
+                  <select id="pMeal">
+                    <option value="veg">Vegetarian</option>
+                    <option value="non_veg">Non-Vegetarian</option>
+                    <option value="vegan">Vegan</option>
+                    <option value="jain">Jain</option>
+                  </select>
+                </div>
+              </div>
+              <button
+                class="btn-primary btn-full"
+                onclick="confirmBooking(this)"
+              >
+                Confirm &amp; pay
+              </button>
+            </div>
+
+            <div class="book-bar" id="groupBar">
+              <div>
+                <strong id="groupSeatCount">0</strong> seat(s) selected &mdash;
+                <span id="groupTotalLabel"></span>
+              </div>
+              <div style="display: flex; gap: 10px">
+                <button
+                  class="btn-secondary"
+                  id="groupLockBtn"
+                  onclick="lockGroupSeats()"
+                >
+                  Lock selected
+                </button>
+                <button
+                  class="btn-primary hidden"
+                  id="groupConfirmBtn"
+                  onclick="confirmGroupBooking(this)"
+                >
+                  Confirm &amp; pay all
+                </button>
+              </div>
+            </div>
+
+            <div id="groupPassengerForms"></div>
+
+            <div id="bookingMsg"></div>
+          </div>
+        </section>
+
+        <section id="myBookingsSection">
+          <div class="section-head">
+            <div class="section-title grow">My bookings</div>
+            <button class="btn-secondary" onclick="loadMyBookings()">
+              Refresh
+            </button>
+          </div>
+          <div id="myBookingsList">
+            <div class="empty-state">
+              <div class="es-title">Nothing booked yet</div>
+              Confirm a seat above and it'll show up here.
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer>
+      SKYLOCK &middot; DEMO FRONTEND &middot; TALKS TO YOUR LOCAL FASTAPI
+      BACKEND
+    </footer>
+
+    <script>
+      let token = localStorage.getItem("skylock_token") || null;
+      let currentFlightId = null;
+      let currentSeatId = null;
+      let currentSeatLabel = null;
+      let lockInterval = null;
+      let lockSecondsLeft = 0;
+      let authMode = "login";
+      let lastFlights = [];
+
+      function apiBase() {
+        return document.getElementById("apiBase").value.replace(/\/$/, "");
+      }
+
+      const INDIAN_AIRPORTS = [
+        { code: "DEL", city: "Delhi" },
+        { code: "BOM", city: "Mumbai" },
+        { code: "BLR", city: "Bengaluru" },
+        { code: "MAA", city: "Chennai" },
+        { code: "CCU", city: "Kolkata" },
+        { code: "HYD", city: "Hyderabad" },
+        { code: "AMD", city: "Ahmedabad" },
+        { code: "PNQ", city: "Pune" },
+        { code: "GOI", city: "Goa" },
+        { code: "COK", city: "Kochi" },
+        { code: "JAI", city: "Jaipur" },
+        { code: "LKO", city: "Lucknow" },
+        { code: "IXC", city: "Chandigarh" },
+        { code: "GAU", city: "Guwahati" },
+        { code: "PAT", city: "Patna" },
+        { code: "BBI", city: "Bhubaneswar" },
+        { code: "TRV", city: "Thiruvananthapuram" },
+        { code: "VNS", city: "Varanasi" },
+        { code: "IDR", city: "Indore" },
+        { code: "NAG", city: "Nagpur" },
+        { code: "RPR", city: "Raipur" },
+        { code: "SXR", city: "Srinagar" },
+        { code: "IXJ", city: "Jammu" },
+        { code: "ATQ", city: "Amritsar" },
+      ];
+
+      function populateAirportDropdowns() {
+        const opts = ['<option value="">Any</option>']
+          .concat(
+            INDIAN_AIRPORTS.map(
+              (a) => `<option value="${a.code}">${a.code} — ${a.city}</option>`,
+            ),
+          )
+          .join("");
+        document.getElementById("origin").innerHTML = opts;
+        document.getElementById("destination").innerHTML = opts;
+      }
+
+      function goHome() {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+      function scrollToAuth() {
+        showLanding();
+        document
+          .getElementById("authSection")
+          .scrollIntoView({ behavior: "smooth" });
+      }
+      function scrollToPreview() {
+        document
+          .getElementById("previewSection")
+          .scrollIntoView({ behavior: "smooth" });
+      }
+
+      function showLanding() {
+        document.getElementById("page-landing").classList.remove("hidden");
+        document.getElementById("page-app").classList.add("hidden");
+        document.getElementById("appNav").classList.add("hidden");
+        document.getElementById("loginNavBtn").classList.remove("hidden");
+        document.getElementById("logoutBtn").classList.add("hidden");
+      }
+      function showApp() {
+        document.getElementById("page-landing").classList.add("hidden");
+        document.getElementById("page-app").classList.remove("hidden");
+        document.getElementById("appNav").classList.remove("hidden");
+        document.getElementById("loginNavBtn").classList.add("hidden");
+        document.getElementById("logoutBtn").classList.remove("hidden");
+        showAppTab("search");
+      }
+      function showAppTab(tab) {
+        document
+          .getElementById("navSearch")
+          .classList.toggle("active", tab === "search");
+        document
+          .getElementById("navBookings")
+          .classList.toggle("active", tab === "bookings");
+        const target =
+          tab === "bookings" ? "myBookingsSection" : "searchSection";
+        document
+          .getElementById(target)
+          .scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      function updateAuthUI() {
+        const box = document.getElementById("authStatus");
+        box.innerHTML = token
+          ? '<span class="pill"><span class="live-dot"></span>Signed in</span>'
+          : '<span class="pill">Not signed in</span>';
+      }
+
+      function setMsg(elId, text, ok) {
+        const el = document.getElementById(elId);
+        el.textContent = text;
+        el.className = ok ? "msg-ok" : "msg-error";
+      }
+
+      async function apiFetch(path, options = {}) {
+        const headers = options.headers || {};
+        if (token) headers["Authorization"] = "Bearer " + token;
+        const resp = await fetch(apiBase() + path, { ...options, headers });
+        let data = null;
+        try {
+          data = await resp.json();
+        } catch (e) {}
+        return { ok: resp.ok, status: resp.status, data };
+      }
+
+      function extractError(data) {
+        if (!data) return "Request failed — is the API running?";
+        if (
+          data.error &&
+          data.error.details &&
+          Array.isArray(data.error.details)
+        ) {
+          const fieldErrors = data.error.details
+            .map((d) => {
+              const field = Array.isArray(d.loc)
+                ? d.loc[d.loc.length - 1]
+                : d.loc;
+              return `${field}: ${d.msg}`;
+            })
+            .join("; ");
+          return fieldErrors || data.error.message;
+        }
+        if (data.error && data.error.message) return data.error.message;
+        if (data.detail)
+          return typeof data.detail === "string"
+            ? data.detail
+            : JSON.stringify(data.detail);
+        return "Request failed";
+      }
+
+      function formatPrice(f) {
+        const price = f.price ?? f.fare ?? f.amount ?? null;
+        if (price === null || price === undefined || isNaN(Number(price)))
+          return null;
+        return Number(price);
+      }
+
+      function setAuthTab(mode) {
+        authMode = mode;
+        document
+          .getElementById("tabLogin")
+          .classList.toggle("active", mode === "login");
+        document
+          .getElementById("tabRegister")
+          .classList.toggle("active", mode === "register");
+        document.getElementById("authSubmitBtn").textContent =
+          mode === "login" ? "Log in" : "Create account";
+        document.getElementById("authMsg").textContent = "";
+      }
+      function submitAuth() {
+        authMode === "login" ? login() : register();
+      }
+
+      async function register() {
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+        if (!email || !password)
+          return setMsg("authMsg", "Enter an email and password first.", false);
+        const { ok, data } = await apiFetch("/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        if (ok) {
+          setMsg("authMsg", "Account created — logging you in…", true);
+          login();
+        } else setMsg("authMsg", extractError(data), false);
+      }
+
+      async function login() {
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+        if (!email || !password)
+          return setMsg("authMsg", "Enter an email and password first.", false);
+
+        const form = new URLSearchParams();
+        form.append("username", email);
+        form.append("password", password);
+
+        let resp, data;
+        try {
+          resp = await fetch(apiBase() + "/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: form,
+          });
+          data = await resp.json();
+        } catch (e) {
+          return setMsg(
+            "authMsg",
+            "Couldn't reach the API — check the base URL.",
+            false,
+          );
+        }
+
+        if (resp.ok) {
+          token = data.access_token;
+          localStorage.setItem("skylock_token", token);
+          updateAuthUI();
+          setMsg("authMsg", "Logged in.", true);
+          document.getElementById("welcomeHeading").textContent =
+            "Where to, " + email.split("@")[0] + "?";
+          showApp();
+          loadAllFlights();
+          loadMyBookings();
+        } else {
+          setMsg("authMsg", extractError(data), false);
+        }
+      }
+
+      function logout() {
+        token = null;
+        localStorage.removeItem("skylock_token");
+        updateAuthUI();
+        showLanding();
+        loadPreviewFlights();
+        document.getElementById("myBookingsList").innerHTML =
+          '<div class="empty-state"><div class="es-title">Nothing booked yet</div>Confirm a seat above and it\'ll show up here.</div>';
+      }
+
+      function clearSearch() {
+        document.getElementById("origin").value = "";
+        document.getElementById("destination").value = "";
+        document.getElementById("depDate").value = "";
+        loadAllFlights();
+      }
+
+      async function searchFlights() {
+        const origin = document.getElementById("origin").value.trim();
+        const destination = document.getElementById("destination").value.trim();
+        const depDate = document.getElementById("depDate").value;
+
+        const params = new URLSearchParams();
+        if (origin) params.append("origin", origin);
+        if (destination) params.append("destination", destination);
+        if (depDate) params.append("departure_date", depDate);
+
+        setSkeleton("flightResults");
+        const { ok, data } = await apiFetch("/flights/?" + params.toString());
+        if (!ok) {
+          setMsg("searchMsg", extractError(data), false);
+          document.getElementById("flightResults").innerHTML =
+            '<div class="empty-state"><div class="es-title">Search failed</div>' +
+            extractError(data) +
+            "</div>";
+          return;
+        }
+        setMsg(
+          "searchMsg",
+          `Found ${data.length} flight${data.length === 1 ? "" : "s"}.`,
+          true,
+        );
+        lastFlights = data;
+        renderFlights();
+      }
+
+      function setSkeleton(containerId) {
+        document.getElementById(containerId).innerHTML =
+          '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
+      }
+
+      function sortFlights(flights) {
+        const mode = document.getElementById("sortBy")
+          ? document.getElementById("sortBy").value
+          : "departure";
+        const withPrice = flights.map((f) => ({ f, p: formatPrice(f) }));
+        if (mode === "price-asc")
+          withPrice.sort((a, b) => (a.p ?? Infinity) - (b.p ?? Infinity));
+        else if (mode === "price-desc")
+          withPrice.sort((a, b) => (b.p ?? -Infinity) - (a.p ?? -Infinity));
+        else
+          withPrice.sort(
+            (a, b) =>
+              new Date(a.f.departure_time) - new Date(b.f.departure_time),
+          );
+        return withPrice.map((x) => x.f);
+      }
+
+      const PLANE_ARROW_SVG = `<svg viewBox="0 0 24 24" fill="none"><path d="M2 16l7-2 4-8 2 1-2.5 7.5L21 12l1 2-8 4 .5 4-2-1-1-4-6 2z" fill="currentColor"/></svg>`;
+      const PLANE_ARROW_INLINE = `<span class="plane-arrow-inline">${PLANE_ARROW_SVG}</span>`;
+      const ICON_CLOCK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;vertical-align:-1px;display:inline-block;"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`;
+      const ICON_SEAT = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;vertical-align:-1px;display:inline-block;"><path d="M5 12V6a2 2 0 012-2h2a2 2 0 012 2v6M5 12h14M5 12l-1 8h2l1-3h10l1 3h2l-1-8M9 12V6"/></svg>`;
+
+      function ticketHTML(f, { withSeatButton }) {
+        const dep = new Date(f.departure_time);
+        const arr = new Date(f.arrival_time);
+        const fmt = (d) =>
+          d.toLocaleString([], {
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        const price = formatPrice(f);
+        const priceHTML =
+          price !== null
+            ? `<div class="amount">₹${price.toLocaleString("en-IN")}</div><div class="per">per seat</div>`
+            : `<div class="unavailable">Price on request</div>`;
+
+        const stub = withSeatButton
+          ? `<div class="ticket-stub">
+           <div class="ticket-flightno">${f.flight_number}</div>
+           <button class="btn-secondary" onclick="viewSeats(${f.id}, '${f.flight_number}')">Select seat</button>
+           <div class="seats-left">${f.total_seats} seats total</div>
+         </div>`
+          : `<div class="ticket-stub">
+           <div class="ticket-flightno">${f.flight_number}</div>
+           <span class="seats-left">Sign in to book</span>
+         </div>`;
+
+        return `
+      <div class="ticket" id="ticket-${f.id}">
+        <div class="ticket-main">
+          <div class="ticket-route">${f.origin} <span class="plane-arrow">${PLANE_ARROW_SVG}</span> ${f.destination}</div>
+          <div class="ticket-meta">
+            <div>${ICON_CLOCK} Departs<strong>${fmt(dep)}</strong></div>
+            <div>${ICON_CLOCK} Arrives<strong>${fmt(arr)}</strong></div>
+            <div>${ICON_SEAT} Seats<strong>${f.total_seats}</strong></div>
+          </div>
+        </div>
+        <div class="ticket-price">${priceHTML}</div>
+        ${stub}
+      </div>`;
+      }
+
+      function renderFlights() {
+        const container = document.getElementById("flightResults");
+        const seatSection = document.getElementById("seatSection");
+        if (seatSection && container.contains(seatSection)) {
+          document
+            .getElementById("resultsSection")
+            .insertAdjacentElement("afterend", seatSection);
+        }
+
+        if (!lastFlights.length) {
+          container.innerHTML =
+            '<div class="empty-state"><div class="es-title">No flights match</div>Try clearing filters or picking a different date.</div>';
+          return;
+        }
+        const sorted = sortFlights(lastFlights);
+        container.innerHTML = sorted
+          .map((f) => ticketHTML(f, { withSeatButton: true }))
+          .join("");
+      }
+
+      async function loadAllFlights() {
+        setSkeleton("flightResults");
+        const { ok, data } = await apiFetch("/flights/");
+        document.getElementById("statFlights").textContent = ok
+          ? data.length
+          : "—";
+        if (ok) {
+          lastFlights = data;
+          renderFlights();
+        } else
+          document.getElementById("flightResults").innerHTML =
+            '<div class="empty-state"><div class="es-title">Couldn\'t load flights</div>' +
+            extractError(data) +
+            "</div>";
+      }
+
+      async function loadPreviewFlights() {
+        const container = document.getElementById("previewFlights");
+        try {
+          const resp = await fetch(apiBase() + "/flights/");
+          const data = await resp.json();
+          if (!resp.ok || !Array.isArray(data) || !data.length) {
+            container.innerHTML =
+              '<div class="empty-state"><div class="es-title">No live flights yet</div>Start the API and add flights to see them here.</div>';
+            return;
+          }
+          const preview = data.slice(0, 4);
+          container.innerHTML = preview
+            .map((f) => ticketHTML(f, { withSeatButton: false }))
+            .join("");
+        } catch (e) {
+          container.innerHTML =
+            '<div class="empty-state"><div class="es-title">API not reachable</div>Set the correct API base URL below and sign in to search.</div>';
+        }
+      }
+
+      let bookingMode = "single";
+      let groupSelectedSeats = [];
+      let lastSeatData = [];
+
+      function setBookingMode(mode) {
+        bookingMode = mode;
+        document
+          .getElementById("modeSingle")
+          .classList.toggle("active", mode === "single");
+        document
+          .getElementById("modeGroup")
+          .classList.toggle("active", mode === "group");
+        document.getElementById("bookBar").style.display = "none";
+        document.getElementById("groupBar").style.display = "none";
+        document.getElementById("passengerFormSingle").style.display = "none";
+        document.getElementById("groupPassengerForms").innerHTML = "";
+        document.getElementById("bookingMsg").textContent = "";
+        clearInterval(lockInterval);
+        currentSeatId = null;
+        groupSelectedSeats = [];
+        document
+          .querySelectorAll(".seat.selected")
+          .forEach((el) => el.classList.remove("selected"));
+        updateGroupBar();
+      }
+
+      async function viewSeats(flightId, flightNumber) {
+        currentFlightId = flightId;
+        const { ok, data } = await apiFetch("/flights/" + flightId);
+        if (!ok) return setMsg("bookingMsg", extractError(data), false);
+
+        const ticketEl = document.getElementById("ticket-" + flightId);
+        const seatSection = document.getElementById("seatSection");
+        if (ticketEl && seatSection) {
+          ticketEl.insertAdjacentElement("afterend", seatSection);
+        }
+
+        document.getElementById("seatFlightLabel").textContent = flightNumber;
+        seatSection.classList.remove("hidden");
+        document.getElementById("bookBar").style.display = "none";
+        document.getElementById("groupBar").style.display = "none";
+        document.getElementById("passengerFormSingle").style.display = "none";
+        document.getElementById("groupPassengerForms").innerHTML = "";
+        document.getElementById("bookingMsg").textContent = "";
+        currentSeatId = null;
+        groupSelectedSeats = [];
+        lastSeatData = data.seats;
+
+        renderSeatGrid();
+        seatSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      function renderSeatGrid() {
+        const grid = document.getElementById("seatGrid");
+        grid.innerHTML = lastSeatData
+          .map((s) => {
+            const priceLabel =
+              s.price && s.price > 0
+                ? `₹${Math.round(s.price).toLocaleString("en-IN")}`
+                : "";
+            const isSelectedGroup = groupSelectedSeats.some(
+              (g) => g.id === s.id,
+            );
+            const selectedClass = isSelectedGroup ? "selected" : "";
+            return `
+      <div class="seat ${s.is_booked ? "booked" : s.is_locked ? "locked" : selectedClass} ${s.seat_class === "business" ? "business" : ""}"
+           id="seat-${s.id}"
+           onclick="${s.is_booked || s.is_locked ? "" : `handleSeatClick(${s.id}, '${s.seat_number}', ${s.price || 0})`}">
+        <span>${s.seat_number}</span>
+        <span class="seat-price">${priceLabel}</span>
+      </div>`;
+          })
+          .join("");
+      }
+
+      function handleSeatClick(seatId, seatNumber, price) {
+        if (bookingMode === "single") {
+          selectSeat(seatId, seatNumber);
+        } else {
+          toggleGroupSeat(seatId, seatNumber, price);
+        }
+      }
+
+      async function selectSeat(seatId, seatNumber) {
+        document
+          .querySelectorAll(".seat.selected")
+          .forEach((el) => el.classList.remove("selected"));
+        document.getElementById("seat-" + seatId).classList.add("selected");
+        currentSeatId = seatId;
+        currentSeatLabel = seatNumber;
+
+        const { ok, data } = await apiFetch("/bookings/lock-seat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ flight_id: currentFlightId, seat_id: seatId }),
+        });
+
+        if (!ok) {
+          setMsg("bookingMsg", extractError(data), false);
+          document
+            .getElementById("seat-" + seatId)
+            .classList.remove("selected");
+          currentSeatId = null;
+          return;
+        }
+
+        setMsg(
+          "bookingMsg",
+          "Seat locked — fill in passenger details to complete your booking.",
+          true,
+        );
+        document.getElementById("selectedSeatLabel").textContent = seatNumber;
+        document.getElementById("bookBar").style.display = "flex";
+        document.getElementById("passengerFormSingle").style.display = "block";
+        startLockTimer(data.expires_in_seconds || 300);
+      }
+
+      function startLockTimer(seconds) {
+        clearInterval(lockInterval);
+        lockSecondsLeft = seconds;
+        updateTimerLabel();
+        lockInterval = setInterval(() => {
+          lockSecondsLeft--;
+          updateTimerLabel();
+          if (lockSecondsLeft <= 0) {
+            clearInterval(lockInterval);
+            setMsg(
+              "bookingMsg",
+              "Lock expired — seat released. Select again to retry.",
+              false,
+            );
+            document.getElementById("bookBar").style.display = "none";
+            document.getElementById("passengerFormSingle").style.display =
+              "none";
+            if (currentSeatId) {
+              const el = document.getElementById("seat-" + currentSeatId);
+              if (el) el.classList.remove("selected");
+            }
+          }
+        }, 1000);
+      }
+
+      function updateTimerLabel() {
+        const m = Math.floor(lockSecondsLeft / 60);
+        const s = lockSecondsLeft % 60;
+        document.getElementById("lockTimer").textContent =
+          `${m}:${s.toString().padStart(2, "0")}`;
+      }
+
+      async function withBusyButton(btnEl, busyLabel, fn) {
+        if (!btnEl) return fn();
+        const originalLabel = btnEl.textContent;
+        const originalDisabled = btnEl.disabled;
+        btnEl.disabled = true;
+        btnEl.textContent = busyLabel;
+        try {
+          await fn();
+        } finally {
+          btnEl.disabled = originalDisabled;
+          btnEl.textContent = originalLabel;
+        }
+      }
+
+      function readPassengerForm(prefix) {
+        const fullName = document
+          .getElementById(prefix + "FullName")
+          .value.trim();
+        const age = document.getElementById(prefix + "Age").value;
+        const gender = document.getElementById(prefix + "Gender").value;
+        const meal = document.getElementById(prefix + "Meal").value;
+
+        if (!fullName || !age || !gender) return null;
+
+        return {
+          full_name: fullName,
+          age: parseInt(age, 10),
+          gender: gender,
+          meal_preference: meal || "veg",
+        };
+      }
+
+      async function confirmBooking(btn) {
+        if (!currentSeatId || !currentFlightId) return;
+
+        const passenger = readPassengerForm("p");
+        if (!passenger) {
+          setMsg(
+            "bookingMsg",
+            "Please fill in passenger name, age, and gender before confirming.",
+            false,
+          );
+          return;
+        }
+
+        await withBusyButton(btn, "Confirming…", async () => {
+          const { ok, data } = await apiFetch("/bookings/confirm", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              flight_id: currentFlightId,
+              seat_id: currentSeatId,
+              passenger,
+            }),
+          });
+          if (!ok) {
+            setMsg("bookingMsg", extractError(data), false);
+            return;
+          }
+
+          clearInterval(lockInterval);
+          setMsg(
+            "bookingMsg",
+            `Booking confirmed — payment of ₹${data.payment ? data.payment.amount : ""} processed.`,
+            true,
+          );
+          document.getElementById("bookBar").style.display = "none";
+          document.getElementById("passengerFormSingle").style.display = "none";
+          document
+            .getElementById("seat-" + currentSeatId)
+            .classList.remove("selected");
+          document
+            .getElementById("seat-" + currentSeatId)
+            .classList.add("booked");
+          currentSeatId = null;
+          await loadMyBookings();
+          document
+            .getElementById("myBookingsSection")
+            .scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
+
+      function toggleGroupSeat(seatId, seatNumber, price) {
+        const idx = groupSelectedSeats.findIndex((g) => g.id === seatId);
+        const el = document.getElementById("seat-" + seatId);
+        if (idx >= 0) {
+          groupSelectedSeats.splice(idx, 1);
+          el.classList.remove("selected");
+        } else {
+          groupSelectedSeats.push({ id: seatId, number: seatNumber, price });
+          el.classList.add("selected");
+        }
+        document.getElementById("groupBar").style.display =
+          groupSelectedSeats.length ? "flex" : "none";
+        document.getElementById("groupConfirmBtn").classList.add("hidden");
+        document.getElementById("groupLockBtn").classList.remove("hidden");
+        document.getElementById("groupPassengerForms").innerHTML = "";
+        updateGroupBar();
+      }
+
+      function updateGroupBar() {
+        document.getElementById("groupSeatCount").textContent =
+          groupSelectedSeats.length;
+        const total = groupSelectedSeats.reduce(
+          (sum, s) => sum + (s.price || 0),
+          0,
+        );
+        document.getElementById("groupTotalLabel").textContent =
+          total > 0 ? `est. ₹${Math.round(total).toLocaleString("en-IN")}` : "";
+      }
+
+      function genderOptionsHTML(prefix) {
+        return `
+      <option value="">Select</option>
+      <option value="male">Male</option>
+      <option value="female">Female</option>
+      <option value="other">Other</option>`;
+      }
+
+      function renderGroupPassengerForms() {
+        const container = document.getElementById("groupPassengerForms");
+        container.innerHTML = groupSelectedSeats
+          .map(
+            (s) => `
+      <div class="card" style="margin-top:14px; background:rgba(255,255,255,.5);">
+        <div class="section-title" style="margin-bottom:14px;">Passenger — Seat ${s.number}</div>
+        <div class="grid-2">
+          <div>
+            <label for="g${s.id}FullName">Full name</label>
+            <input type="text" id="g${s.id}FullName" placeholder="As per ID">
+          </div>
+          <div>
+            <label for="g${s.id}Age">Age</label>
+            <input type="number" id="g${s.id}Age" min="1" max="120" placeholder="e.g. 29">
+          </div>
+          <div>
+            <label for="g${s.id}Gender">Gender</label>
+            <select id="g${s.id}Gender">${genderOptionsHTML()}</select>
+          </div>
+          <div>
+            <label for="g${s.id}Meal">Meal preference</label>
+            <select id="g${s.id}Meal">
+              <option value="veg">Vegetarian</option>
+              <option value="non_veg">Non-Vegetarian</option>
+              <option value="vegan">Vegan</option>
+              <option value="jain">Jain</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    `,
+          )
+          .join("");
+      }
+
+      async function lockGroupSeats() {
+        if (!groupSelectedSeats.length)
+          return setMsg("bookingMsg", "Select at least one seat first.", false);
+        const btn = document.getElementById("groupLockBtn");
+        await withBusyButton(btn, "Locking…", async () => {
+          const seatIds = groupSelectedSeats.map((s) => s.id);
+          const { ok, data } = await apiFetch("/bookings/lock-seats", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              flight_id: currentFlightId,
+              seat_ids: seatIds,
+            }),
+          });
+
+          if (!ok) {
+            setMsg("bookingMsg", extractError(data), false);
+            return;
+          }
+
+          setMsg(
+            "bookingMsg",
+            `${seatIds.length} seat(s) locked — fill in passenger details for each, then confirm within 5 minutes.`,
+            true,
+          );
+          document.getElementById("groupLockBtn").classList.add("hidden");
+          document.getElementById("groupConfirmBtn").classList.remove("hidden");
+          renderGroupPassengerForms();
+          startLockTimer(300);
+        });
+      }
+
+      async function confirmGroupBooking(btn) {
+        if (!groupSelectedSeats.length) return;
+
+        const passengers = [];
+        for (const s of groupSelectedSeats) {
+          const passenger = readPassengerForm("g" + s.id);
+          if (!passenger) {
+            setMsg(
+              "bookingMsg",
+              `Please fill in all passenger details for seat ${s.number}.`,
+              false,
+            );
+            return;
+          }
+          passengers.push(passenger);
+        }
+
+        await withBusyButton(btn, "Confirming…", async () => {
+          const seatIds = groupSelectedSeats.map((s) => s.id);
+
+          const { ok, data } = await apiFetch("/bookings/confirm-group", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              flight_id: currentFlightId,
+              seat_ids: seatIds,
+              passengers,
+            }),
+          });
+
+          if (!ok) {
+            setMsg("bookingMsg", extractError(data), false);
+            return;
+          }
+
+          clearInterval(lockInterval);
+          setMsg(
+            "bookingMsg",
+            `Group booking confirmed — ${data.bookings.length} seat(s), total ₹${Math.round(data.total_amount).toLocaleString("en-IN")} paid.`,
+            true,
+          );
+          document.getElementById("groupBar").style.display = "none";
+          document.getElementById("groupPassengerForms").innerHTML = "";
+
+          seatIds.forEach((id) => {
+            const el = document.getElementById("seat-" + id);
+            if (el) {
+              el.classList.remove("selected");
+              el.classList.add("booked");
+            }
+          });
+
+          groupSelectedSeats = [];
+          await loadMyBookings();
+          document
+            .getElementById("myBookingsSection")
+            .scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
+
+      async function loadMyBookings() {
+        if (!token) return;
+        const { ok, data } = await apiFetch("/bookings/me");
+        if (!ok) return;
+        document.getElementById("statBookings").textContent = data.length;
+
+        const container = document.getElementById("myBookingsList");
+        if (!data.length) {
+          container.innerHTML =
+            '<div class="empty-state"><div class="es-title">Nothing booked yet</div>Confirm a seat above and it\'ll show up here.</div>';
+          return;
+        }
+        container.innerHTML = data
+          .map((b) => {
+            const flightLine = b.flight
+              ? `${b.flight.origin} ${PLANE_ARROW_INLINE} ${b.flight.destination}`
+              : "Route unavailable";
+            const depDate = b.flight ? new Date(b.flight.departure_time) : null;
+            const depLabel = depDate
+              ? depDate.toLocaleString([], {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "";
+            const mealLabel = b.passenger
+              ? b.passenger.meal_preference.replace("_", " ")
+              : "";
+            const baseFare = b.payment ? b.payment.amount : null;
+
+            return `
+      <div class="booking-row" style="flex-direction:column; align-items:stretch; gap:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
+          <div>
+            <div class="mono" style="font-weight:700; font-size:1.05rem; display:flex; align-items:center; gap:8px;">
+              ${flightLine}
+              <span style="font-size:0.7rem; color:var(--text-faint); font-weight:500;">${b.flight ? b.flight.flight_number : ""}</span>
+            </div>
+            <div style="font-size:0.78rem; color:var(--text-muted); margin-top:4px;">
+              ${ICON_CLOCK} ${depLabel} &middot; Booking #${b.id} &middot; Seat ${b.seat_id}
+            </div>
+          </div>
+          <span class="status-tag ${b.status === "confirmed" ? "status-confirmed" : "status-cancelled"}">${b.status}</span>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; padding:12px 14px; background:rgba(255,255,255,.4); border-radius:10px; font-size:0.8rem;">
+          <div><span style="color:var(--text-faint);">Passenger</span><br><strong>${b.passenger ? b.passenger.full_name : "—"}</strong></div>
+          <div><span style="color:var(--text-faint);">Age / Gender</span><br><strong>${b.passenger ? b.passenger.age + " / " + b.passenger.gender : "—"}</strong></div>
+          <div><span style="color:var(--text-faint);">Meal</span><br><strong style="text-transform:capitalize;">${mealLabel || "—"}</strong></div>
+          <div><span style="color:var(--text-faint);">Amount paid</span><br><strong class="mono">${baseFare !== null ? "₹" + baseFare.toLocaleString("en-IN") : "—"}</strong></div>
+          <div><span style="color:var(--text-faint);">Payment status</span><br><strong style="text-transform:capitalize;">${b.payment ? b.payment.status : "—"}</strong></div>
+          ${b.refund ? `<div><span style="color:var(--text-faint);">Refund</span><br><strong style="text-transform:capitalize;">${b.refund.status} · ₹${b.refund.amount.toLocaleString("en-IN")}</strong></div>` : ""}
+        </div>
+
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+          ${b.status === "confirmed" ? `<button class="btn-secondary" onclick="downloadTicket(${b.id})">Download ticket</button>` : ""}
+          ${b.status === "confirmed" ? `<button class="btn-danger" onclick="cancelBooking(${b.id})">Cancel booking</button>` : ""}
+        </div>
+      </div>`;
+          })
+          .join("");
+      }
+
+      async function downloadTicket(bookingId) {
+        try {
+          const resp = await fetch(
+            apiBase() + `/bookings/${bookingId}/ticket`,
+            {
+              headers: { Authorization: "Bearer " + token },
+            },
+          );
+          if (!resp.ok) {
+            const data = await resp.json().catch(() => null);
+            setMsg("bookingMsg", extractError(data), false);
+            return;
+          }
+          const blob = await resp.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `skylock-ticket-${bookingId}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(url);
+        } catch (e) {
+          setMsg("bookingMsg", "Could not download ticket.", false);
+        }
+      }
+
+      async function cancelBooking(bookingId) {
+        const { ok, data } = await apiFetch(`/bookings/${bookingId}/cancel`, {
+          method: "POST",
+        });
+        if (!ok) {
+          setMsg("bookingMsg", extractError(data), false);
+          return;
+        }
+        loadMyBookings();
+      }
+
+      updateAuthUI();
+      populateAirportDropdowns();
+      if (token) {
+        showApp();
+        loadAllFlights();
+        loadMyBookings();
+      } else {
+        showLanding();
+        loadPreviewFlights();
+      }
+    </script>
+  </body>
+</html> -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SkyLock — Fly with confidence</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9C%88%EF%B8%8F%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --sky-1: #eaf5ff;
+        --sky-2: #d7edff;
+        --sky-3: #c3e4fb;
+        --blue-deep: #0b3a63;
+        --blue-primary: #2f7cf6;
+        --blue-primary-hi: #4f93ff;
+        --blue-soft: #8fc1ff;
+        --cyan: #22c3d6;
+        --white-glass: rgba(255, 255, 255, 0.62);
+        --white-glass-hi: rgba(255, 255, 255, 0.85);
+        --border-glass: rgba(255, 255, 255, 0.55);
+        --border-line: rgba(11, 58, 99, 0.12);
+        --text: #0b3a63;
+        --text-muted: #5c7c98;
+        --text-faint: #8fa8bd;
+        --amber: #ff9f43;
+        --red: #e6667a;
+        --green: #1fb787;
+        --radius: 20px;
+        --radius-sm: 12px;
+        --shadow-soft: 0 20px 50px -20px rgba(11, 58, 99, 0.25);
+        --shadow-card: 0 10px 30px -12px rgba(11, 58, 99, 0.18);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.001ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.001ms !important;
+        }
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Inter", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(
+            1100px 600px at 85% -10%,
+            rgba(143, 193, 255, 0.55),
+            transparent
+          ),
+          radial-gradient(
+            900px 500px at -5% 20%,
+            rgba(34, 195, 214, 0.25),
+            transparent
+          ),
+          linear-gradient(
+            180deg,
+            var(--sky-1) 0%,
+            var(--sky-2) 55%,
+            var(--sky-3) 100%
+          );
+        position: relative;
+        overflow-x: hidden;
+      }
+
+      .cloud {
+        position: fixed;
+        pointer-events: none;
+        opacity: 0.55;
+        filter: blur(0.5px);
+        z-index: 0;
+      }
+      .cloud svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .cloud.c1 {
+        width: 340px;
+        top: 6%;
+        left: -6%;
+        animation: drift 70s linear infinite;
+      }
+      .cloud.c2 {
+        width: 220px;
+        top: 22%;
+        right: -8%;
+        animation: drift-rev 90s linear infinite;
+        opacity: 0.4;
+      }
+      .cloud.c3 {
+        width: 260px;
+        bottom: 8%;
+        left: 8%;
+        animation: drift 110s linear infinite;
+        opacity: 0.35;
+      }
+      @keyframes drift {
+        from {
+          transform: translateX(0);
+        }
+        to {
+          transform: translateX(60px);
+        }
+      }
+      @keyframes drift-rev {
+        from {
+          transform: translateX(0);
+        }
+        to {
+          transform: translateX(-60px);
+        }
+      }
+
+      .mono {
+        font-family: "JetBrains Mono", monospace;
+      }
+      a {
+        color: inherit;
+      }
+
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 40px;
+        background: var(--white-glass-hi);
+        backdrop-filter: blur(16px) saturate(160%);
+        border-bottom: 1px solid var(--border-glass);
+      }
+      .logo {
+        font-family: "Manrope", sans-serif;
+        font-weight: 800;
+        font-size: 1.35rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        color: var(--blue-deep);
+      }
+      .logo .logo-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 11px;
+        background: linear-gradient(135deg, var(--blue-primary), var(--cyan));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 6px 16px -4px rgba(47, 124, 246, 0.55);
+      }
+      .logo .logo-icon svg {
+        width: 19px;
+        height: 19px;
+      }
+      .logo .dot {
+        color: var(--blue-primary);
+      }
+
+      .app-nav {
+        display: flex;
+        gap: 4px;
+        background: rgba(255, 255, 255, 0.55);
+        border: 1px solid var(--border-glass);
+        border-radius: 999px;
+        padding: 4px;
+      }
+      .app-nav button {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        padding: 9px 20px;
+        border-radius: 999px;
+        font-size: 0.86rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: "Inter", sans-serif;
+      }
+      .app-nav button.active {
+        background: var(--blue-primary);
+        color: #fff;
+        box-shadow: 0 6px 14px -6px rgba(47, 124, 246, 0.6);
+      }
+      .app-nav button:hover:not(.active) {
+        color: var(--text);
+      }
+
+      .authbox {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+      }
+      .authbox .pill {
+        padding: 7px 15px;
+        border-radius: 999px;
+        border: 1px solid var(--border-glass);
+        background: rgba(255, 255, 255, 0.6);
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .live-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--green);
+        box-shadow: 0 0 0 3px rgba(31, 183, 135, 0.18);
+      }
+      .header-btn {
+        padding: 9px 18px;
+        border-radius: 999px;
+        font-size: 0.83rem;
+      }
+
+      main {
+        max-width: 1140px;
+        margin: 0 auto;
+        padding: 0 40px 100px;
+        position: relative;
+        z-index: 1;
+      }
+      .hidden {
+        display: none !important;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 48px;
+        align-items: center;
+        padding: 64px 0 56px;
+      }
+      .eyebrow {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.72rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--blue-primary);
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+      }
+      .eyebrow::before {
+        content: "";
+        width: 16px;
+        height: 2px;
+        background: var(--blue-primary);
+        border-radius: 2px;
+      }
+
+      h1 {
+        font-family: "Manrope", sans-serif;
+        font-size: 3rem;
+        font-weight: 800;
+        margin: 0 0 18px;
+        line-height: 1.08;
+        letter-spacing: -0.01em;
+        color: var(--blue-deep);
+      }
+      h1 em {
+        color: var(--blue-primary);
+        font-style: normal;
+        position: relative;
+      }
+
+      .hero-sub {
+        color: var(--text-muted);
+        font-size: 1.05rem;
+        line-height: 1.65;
+        margin-bottom: 30px;
+        max-width: 480px;
+      }
+      .hero-ctas {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 34px;
+        flex-wrap: wrap;
+      }
+
+      .hero-stats {
+        display: flex;
+        gap: 28px;
+        flex-wrap: wrap;
+      }
+      .hero-stats div {
+        border-left: 2px solid var(--border-line);
+        padding-left: 12px;
+      }
+      .hero-stats strong {
+        display: block;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 1.15rem;
+        color: var(--blue-deep);
+      }
+      .hero-stats span {
+        font-size: 0.72rem;
+        color: var(--text-faint);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      .plane-scene {
+        position: relative;
+        height: 340px;
+        background: var(--white-glass);
+        border: 1px solid var(--border-glass);
+        border-radius: 28px;
+        backdrop-filter: blur(18px) saturate(160%);
+        box-shadow: var(--shadow-soft);
+        overflow: hidden;
+      }
+      .plane-scene::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(
+            220px 140px at 75% 20%,
+            rgba(255, 255, 255, 0.9),
+            transparent
+          ),
+          radial-gradient(
+            260px 160px at 15% 75%,
+            rgba(143, 193, 255, 0.5),
+            transparent
+          );
+      }
+      .route-path {
+        position: absolute;
+        inset: 0;
+      }
+      .plane-glyph {
+        position: absolute;
+        width: 52px;
+        height: 52px;
+        offset-path: path("M 40,270 C 120,140 220,90 380,40");
+        offset-rotate: auto;
+        animation: fly 7s ease-in-out infinite alternate;
+      }
+      @keyframes fly {
+        0% {
+          offset-distance: 0%;
+        }
+        100% {
+          offset-distance: 100%;
+        }
+      }
+      .plane-glyph svg {
+        width: 100%;
+        height: 100%;
+        filter: drop-shadow(0 8px 14px rgba(47, 124, 246, 0.45));
+      }
+      .scene-pin {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+      .scene-pin .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--blue-primary);
+        box-shadow: 0 0 0 5px rgba(47, 124, 246, 0.18);
+      }
+      .scene-pin.origin {
+        left: 26px;
+        bottom: 26px;
+      }
+      .scene-pin.dest {
+        right: 34px;
+        top: 22px;
+      }
+      .scene-pin span {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--blue-deep);
+        background: rgba(255, 255, 255, 0.85);
+        padding: 3px 8px;
+        border-radius: 6px;
+      }
+
+      section {
+        margin-bottom: 60px;
+      }
+      .section-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+      .section-title {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.76rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+      }
+      .section-title.grow {
+        flex: 1;
+      }
+      .section-title.grow::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--border-line);
+        margin-left: 4px;
+      }
+      .section-note {
+        font-size: 0.82rem;
+        color: var(--text-faint);
+      }
+
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+      .feature-card {
+        background: var(--white-glass);
+        border: 1px solid var(--border-glass);
+        border-radius: var(--radius);
+        padding: 24px;
+        backdrop-filter: blur(14px);
+        box-shadow: var(--shadow-card);
+        transition:
+          transform 0.18s ease,
+          box-shadow 0.18s ease;
+      }
+      .feature-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 18px 40px -14px rgba(11, 58, 99, 0.3);
+      }
+      .feature-card .f-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--blue-primary), var(--cyan));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 14px;
+        box-shadow: 0 8px 18px -6px rgba(47, 124, 246, 0.5);
+      }
+      .feature-card .f-icon svg {
+        width: 20px;
+        height: 20px;
+        color: #fff;
+      }
+      .feature-card h3 {
+        font-family: "Manrope", sans-serif;
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin: 0 0 8px;
+        color: var(--blue-deep);
+      }
+      .feature-card p {
+        color: var(--text-muted);
+        font-size: 0.88rem;
+        line-height: 1.55;
+        margin: 0;
+      }
+
+      .card {
+        background: var(--white-glass);
+        border: 1px solid var(--border-glass);
+        border-radius: var(--radius);
+        padding: 26px;
+        backdrop-filter: blur(16px) saturate(160%);
+        box-shadow: var(--shadow-card);
+      }
+      .auth-card {
+        max-width: 520px;
+      }
+      .auth-tabs {
+        display: flex;
+        gap: 6px;
+        margin: 0 auto 22px;
+        background: rgba(255, 255, 255, 0.55);
+        border: 1px solid var(--border-glass);
+        border-radius: 999px;
+        padding: 4px;
+        width: fit-content;
+      }
+      .auth-tabs button {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        padding: 8px 22px;
+        border-radius: 999px;
+        font-size: 0.83rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .auth-tabs button.active {
+        background: var(--blue-primary);
+        color: #fff;
+        box-shadow: 0 6px 14px -6px rgba(47, 124, 246, 0.6);
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      label {
+        display: block;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 12px 14px;
+        background: rgba(255, 255, 255, 0.75);
+        border: 1px solid var(--border-line);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        font-family: "Inter", sans-serif;
+        font-size: 0.92rem;
+        margin-bottom: 14px;
+      }
+      select {
+        font-family: "JetBrains Mono", monospace;
+        cursor: pointer;
+      }
+      input:focus,
+      select:focus,
+      button:focus-visible {
+        outline: 2px solid var(--blue-primary);
+        outline-offset: 2px;
+        border-color: var(--blue-primary);
+      }
+      input::placeholder {
+        color: var(--text-faint);
+      }
+
+      details.advanced summary {
+        cursor: pointer;
+        color: var(--text-faint);
+        font-size: 0.76rem;
+        font-family: "JetBrains Mono", monospace;
+        margin-bottom: 10px;
+        list-style: none;
+      }
+      details.advanced summary::-webkit-details-marker {
+        display: none;
+      }
+      details.advanced summary::before {
+        content: "▸ ";
+      }
+      details.advanced[open] summary::before {
+        content: "▾ ";
+      }
+
+      button {
+        cursor: pointer;
+        border: none;
+        border-radius: var(--radius-sm);
+        padding: 12px 22px;
+        font-family: "Inter", sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        transition:
+          transform 0.1s ease,
+          opacity 0.15s ease,
+          border-color 0.15s ease,
+          background 0.15s ease,
+          box-shadow 0.15s ease;
+      }
+      button:active {
+        transform: scale(0.98);
+      }
+      .btn-primary {
+        background: linear-gradient(
+          135deg,
+          var(--blue-primary),
+          var(--blue-primary-hi)
+        );
+        color: #fff;
+        box-shadow: 0 10px 24px -8px rgba(47, 124, 246, 0.6);
+      }
+      .btn-primary:hover {
+        box-shadow: 0 14px 28px -8px rgba(47, 124, 246, 0.7);
+      }
+      .btn-secondary {
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid var(--border-line);
+        color: var(--blue-deep);
+      }
+      .btn-secondary:hover {
+        border-color: var(--blue-primary);
+        background: #fff;
+      }
+      .btn-ghost {
+        background: transparent;
+        border: 1px solid transparent;
+        color: var(--text-muted);
+      }
+      .btn-ghost:hover {
+        color: var(--blue-deep);
+      }
+      .btn-danger {
+        background: transparent;
+        border: 1px solid var(--red);
+        color: var(--red);
+      }
+      .btn-danger:hover {
+        background: rgba(230, 102, 122, 0.1);
+      }
+      .btn-full {
+        width: 100%;
+      }
+      .btn-row {
+        display: flex;
+        gap: 10px;
+        margin-top: 4px;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      #authMsg,
+      #searchMsg,
+      #bookingMsg {
+        font-size: 0.85rem;
+        margin-top: 10px;
+        min-height: 1.2em;
+        font-weight: 600;
+      }
+      .msg-error {
+        color: var(--red);
+      }
+      .msg-ok {
+        color: var(--green);
+      }
+
+      .welcome-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 24px 28px;
+        background: linear-gradient(
+          120deg,
+          rgba(255, 255, 255, 0.75),
+          rgba(255, 255, 255, 0.5)
+        );
+        border: 1px solid var(--border-glass);
+        border-radius: var(--radius);
+        margin: 32px 0 44px;
+        backdrop-filter: blur(14px);
+        box-shadow: var(--shadow-card);
+      }
+      .welcome-bar h2 {
+        font-family: "Manrope", sans-serif;
+        font-weight: 800;
+        font-size: 1.5rem;
+        margin: 0 0 4px;
+        color: var(--blue-deep);
+      }
+      .welcome-bar p {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 0.86rem;
+      }
+      .welcome-stats {
+        display: flex;
+        gap: 26px;
+      }
+      .welcome-stats div {
+        text-align: right;
+      }
+      .welcome-stats strong {
+        display: block;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 1.3rem;
+        color: var(--blue-primary);
+      }
+      .welcome-stats span {
+        font-size: 0.68rem;
+        color: var(--text-faint);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      .search-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr auto;
+        gap: 12px;
+        align-items: end;
+      }
+      .search-row button {
+        height: 46px;
+      }
+      .search-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 16px;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .sort-control {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+      }
+      .sort-control select {
+        margin: 0;
+        padding: 7px 10px;
+        width: auto;
+        font-size: 0.8rem;
+      }
+
+      .flight-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .ticket {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1fr auto 172px;
+        background: var(--white-glass);
+        border: 1px solid var(--border-glass);
+        border-radius: var(--radius);
+        overflow: hidden;
+        backdrop-filter: blur(14px);
+        box-shadow: var(--shadow-card);
+        transition:
+          transform 0.16s ease,
+          box-shadow 0.16s ease,
+          border-color 0.16s ease;
+      }
+      .ticket:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 18px 40px -14px rgba(11, 58, 99, 0.3);
+        border-color: rgba(47, 124, 246, 0.4);
+      }
+      .ticket-main {
+        padding: 22px 24px;
+      }
+      .ticket-route {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 1.3rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        color: var(--blue-deep);
+      }
+      .ticket-route .plane-arrow {
+        color: var(--blue-primary);
+        display: flex;
+        align-items: center;
+      }
+      .ticket-route .plane-arrow svg {
+        width: 20px;
+        height: 20px;
+      }
+      .ticket-meta {
+        display: flex;
+        gap: 26px;
+        margin-top: 13px;
+        flex-wrap: wrap;
+      }
+      .ticket-meta div {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+      }
+      .ticket-meta strong {
+        display: block;
+        color: var(--text);
+        font-size: 0.9rem;
+        margin-top: 2px;
+        font-family: "JetBrains Mono", monospace;
+        font-weight: 600;
+      }
+
+      .ticket-price {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: center;
+        padding: 22px 20px;
+        border-left: 1px dashed var(--border-line);
+        text-align: right;
+      }
+      .ticket-price .amount {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: var(--blue-primary);
+        line-height: 1;
+      }
+      .ticket-price .per {
+        font-size: 0.66rem;
+        color: var(--text-faint);
+        margin-top: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .ticket-price .unavailable {
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        font-style: italic;
+      }
+
+      .ticket-stub {
+        border-left: 2px dashed var(--border-line);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 16px;
+        position: relative;
+      }
+      .ticket-stub::before,
+      .ticket-stub::after {
+        content: "";
+        position: absolute;
+        width: 22px;
+        height: 22px;
+        background: var(--sky-1);
+        border-radius: 50%;
+        left: -12px;
+      }
+      .ticket-stub::before {
+        top: -11px;
+      }
+      .ticket-stub::after {
+        bottom: -11px;
+      }
+      .ticket-flightno {
+        font-family: "JetBrains Mono", monospace;
+        font-weight: 700;
+        color: var(--blue-primary);
+        font-size: 0.9rem;
+      }
+      .seats-left {
+        font-size: 0.66rem;
+        color: var(--text-faint);
+        text-align: center;
+      }
+
+      .skeleton {
+        background: var(--white-glass);
+        border: 1px solid var(--border-glass);
+        border-radius: var(--radius);
+        height: 96px;
+        position: relative;
+        overflow: hidden;
+      }
+      .skeleton::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.7),
+          transparent
+        );
+        animation: shimmer 1.4s infinite;
+      }
+      @keyframes shimmer {
+        0% {
+          transform: translateX(-100%);
+        }
+        100% {
+          transform: translateX(100%);
+        }
+      }
+
+      .seat-legend {
+        display: flex;
+        gap: 18px;
+        margin-bottom: 16px;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        flex-wrap: wrap;
+      }
+      .seat-legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .swatch {
+        width: 12px;
+        height: 12px;
+        border-radius: 4px;
+        display: inline-block;
+      }
+      .sw-open {
+        background: #fff;
+        border: 1px solid var(--border-line);
+      }
+      .sw-selected {
+        background: var(--blue-primary);
+      }
+      .sw-booked {
+        background: #c9d7e4;
+      }
+      .sw-locked {
+        background: var(--amber);
+        opacity: 0.6;
+      }
+
+      .seat-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 60px);
+        gap: 8px;
+        justify-content: start;
+      }
+      .seat {
+        width: 60px;
+        height: 52px;
+        border-radius: var(--radius-sm);
+        background: #fff;
+        border: 1px solid var(--border-line);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: all 0.12s ease;
+      }
+      .seat .seat-price {
+        font-size: 0.6rem;
+        color: var(--text-faint);
+        font-weight: 600;
+      }
+      .seat:hover:not(.booked):not(.locked) {
+        border-color: var(--blue-primary);
+        color: var(--blue-deep);
+        box-shadow: 0 4px 10px -2px rgba(47, 124, 246, 0.35);
+      }
+      .seat:hover:not(.booked):not(.locked) .seat-price {
+        color: var(--blue-primary);
+      }
+      .seat.selected {
+        background: var(--blue-primary);
+        color: #fff;
+        border-color: var(--blue-primary);
+        font-weight: 700;
+      }
+      .seat.selected .seat-price {
+        color: rgba(255, 255, 255, 0.85);
+      }
+      .seat.booked {
+        background: #dde6ee;
+        color: #a9bccb;
+        cursor: not-allowed;
+      }
+      .seat.booked .seat-price {
+        color: #b9c6d2;
+      }
+      .seat.locked {
+        background: rgba(255, 159, 67, 0.18);
+        color: var(--amber);
+        border-color: var(--amber);
+        cursor: not-allowed;
+      }
+      .seat.locked .seat-price {
+        color: var(--amber);
+        opacity: 0.8;
+      }
+      .seat.business {
+        box-shadow: inset 0 0 0 1px var(--cyan);
+      }
+
+      .book-bar {
+        display: none;
+        margin-top: 20px;
+        padding: 16px 20px;
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid var(--blue-primary);
+        border-radius: 14px;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .book-bar .timer {
+        font-family: "JetBrains Mono", monospace;
+        color: var(--blue-primary);
+        font-weight: 700;
+      }
+
+      .booking-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        background: var(--white-glass);
+        border: 1px solid var(--border-glass);
+        border-radius: 14px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+        gap: 10px;
+        backdrop-filter: blur(12px);
+        box-shadow: var(--shadow-card);
+      }
+      .status-tag {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.7rem;
+        padding: 4px 11px;
+        border-radius: 999px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 700;
+      }
+      .status-confirmed {
+        background: rgba(31, 183, 135, 0.15);
+        color: var(--green);
+      }
+      .status-cancelled {
+        background: rgba(230, 102, 122, 0.15);
+        color: var(--red);
+      }
+
+      /* Small inline plane icon used between origin/destination codes
+         (e.g. in the "My bookings" list). The raw <svg> has no intrinsic
+         width/height, so without this wrapper the browser falls back to a
+         much larger default render size — this keeps it compact and
+         matched to the surrounding text. */
+      .plane-arrow-inline {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+        color: var(--blue-primary);
+        vertical-align: -3px;
+      }
+      .plane-arrow-inline svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .empty-state {
+        padding: 36px 24px;
+        text-align: center;
+        color: var(--text-muted);
+        border: 1px dashed var(--border-line);
+        border-radius: var(--radius);
+        font-size: 0.9rem;
+        background: rgba(255, 255, 255, 0.4);
+      }
+      .empty-state .es-title {
+        color: var(--blue-deep);
+        font-family: "Manrope", sans-serif;
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin-bottom: 6px;
+      }
+
+      footer {
+        text-align: center;
+        padding: 30px;
+        color: var(--text-faint);
+        font-size: 0.76rem;
+        font-family: "JetBrains Mono", monospace;
+        border-top: 1px solid var(--border-line);
+        position: relative;
+        z-index: 1;
+      }
+
+      @media (max-width: 860px) {
+        .hero {
+          grid-template-columns: 1fr;
+          padding-top: 40px;
+        }
+        h1 {
+          font-size: 2.2rem;
+        }
+        .feature-grid {
+          grid-template-columns: 1fr;
+        }
+        .ticket {
+          grid-template-columns: 1fr;
+        }
+        .ticket-price {
+          border-left: none;
+          border-top: 1px dashed var(--border-line);
+          flex-direction: row;
+          justify-content: space-between;
+          align-items: center;
+          text-align: left;
+        }
+        .ticket-stub {
+          border-left: none;
+          border-top: 2px dashed var(--border-line);
+          flex-direction: row;
+        }
+        .ticket-stub::before,
+        .ticket-stub::after {
+          left: 50%;
+          top: -12px;
+          transform: translateX(-50%);
+        }
+        .ticket-stub::after {
+          top: auto;
+          bottom: -12px;
+        }
+        .welcome-bar {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 14px;
+        }
+        .welcome-stats {
+          align-self: stretch;
+          justify-content: space-between;
+        }
+        .welcome-stats div {
+          text-align: left;
+        }
+        .plane-scene {
+          height: 260px;
+        }
+      }
+      @media (max-width: 700px) {
+        header {
+          padding: 14px 20px;
+        }
+        main {
+          padding: 0 20px 80px;
+        }
+        .grid-2,
+        .search-row {
+          grid-template-columns: 1fr;
+        }
+        .app-nav {
+          display: none;
+        }
+        .cloud {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="cloud c1">
+      <svg viewBox="0 0 200 90" fill="none">
+        <path
+          d="M20 60c-10 0-18-8-18-18s8-18 18-18c3-14 16-24 30-24 15 0 28 11 30 25 12 1 21 11 21 23 0 13-10 23-23 23H20z"
+          fill="#ffffff"
+        />
+      </svg>
+    </div>
+    <div class="cloud c2">
+      <svg viewBox="0 0 200 90" fill="none">
+        <path
+          d="M20 60c-10 0-18-8-18-18s8-18 18-18c3-14 16-24 30-24 15 0 28 11 30 25 12 1 21 11 21 23 0 13-10 23-23 23H20z"
+          fill="#ffffff"
+        />
+      </svg>
+    </div>
+    <div class="cloud c3">
+      <svg viewBox="0 0 200 90" fill="none">
+        <path
+          d="M20 60c-10 0-18-8-18-18s8-18 18-18c3-14 16-24 30-24 15 0 28 11 30 25 12 1 21 11 21 23 0 13-10 23-23 23H20z"
+          fill="#ffffff"
+        />
+      </svg>
+    </div>
+
+    <header>
+      <div class="logo" onclick="goHome()">
+        <span class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path
+              d="M2 16l7-2 4-8 2 1-2.5 7.5L21 12l1 2-8 4 .5 4-2-1-1-4-6 2z"
+              fill="#fff"
+            />
+          </svg>
+        </span>
+        SkyLock<span class="dot">.</span>
+      </div>
+      <nav class="app-nav hidden" id="appNav">
+        <button id="navSearch" class="active" onclick="showAppTab('search')">
+          Search
+        </button>
+        <button id="navBookings" onclick="showAppTab('bookings')">
+          My bookings
+        </button>
+      </nav>
+      <div class="authbox">
+        <span id="authStatus"><span class="pill">Not signed in</span></span>
+        <button
+          class="btn-secondary header-btn hidden"
+          id="loginNavBtn"
+          onclick="scrollToAuth()"
+        >
+          Log in
+        </button>
+        <button
+          class="btn-danger header-btn hidden"
+          id="logoutBtn"
+          onclick="logout()"
+        >
+          Log out
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <div id="page-landing">
+        <section class="hero" style="margin-bottom: 40px">
+          <div>
+            <div class="eyebrow">Live API demo</div>
+            <h1>Book a seat.<br />Fly with <em>confidence</em>.</h1>
+            <p class="hero-sub">
+              SkyLock reserves your seat with a short-lived Redis lock the
+              instant you tap it, then confirms your booking inside a Postgres
+              transaction — so two travelers never end up with the same seat.
+            </p>
+            <div class="hero-ctas">
+              <button class="btn-primary" onclick="scrollToAuth()">
+                Get started
+              </button>
+              <button class="btn-secondary" onclick="scrollToPreview()">
+                Browse flights
+              </button>
+            </div>
+            <div class="hero-stats">
+              <div><strong>5:00</strong><span>Seat lock window</span></div>
+              <div><strong>ACID</strong><span>Booking commits</span></div>
+              <div><strong>JWT</strong><span>Session auth</span></div>
+            </div>
+          </div>
+
+          <div class="plane-scene">
+            <div class="route-path">
+              <svg
+                width="100%"
+                height="100%"
+                viewBox="0 0 420 340"
+                style="position: absolute; inset: 0"
+              >
+                <path
+                  d="M 40,270 C 120,140 220,90 380,40"
+                  stroke="#8fc1ff"
+                  stroke-width="2"
+                  stroke-dasharray="6 8"
+                  fill="none"
+                  opacity="0.9"
+                />
+              </svg>
+            </div>
+            <div class="plane-glyph">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M2 16l7-2 4-8 2 1-2.5 7.5L21 12l1 2-8 4 .5 4-2-1-1-4-6 2z"
+                  fill="#2f7cf6"
+                />
+              </svg>
+            </div>
+            <div class="scene-pin origin">
+              <span>DEL</span><span class="dot"></span>
+            </div>
+            <div class="scene-pin dest">
+              <span class="dot"></span><span>BOM</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="feature-grid">
+          <div class="feature-card">
+            <div class="f-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="3" y="4" width="18" height="16" rx="2" />
+                <path d="M3 10h18M8 4v3M16 4v3" />
+              </svg>
+            </div>
+            <h3>A seat, held for you</h3>
+            <p>
+              Tapping a seat places a five-minute Redis lock so no one else can
+              grab it while you check out — released automatically if you don't
+              finish.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="f-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"
+                />
+              </svg>
+            </div>
+            <h3>One booking, or none</h3>
+            <p>
+              Confirming a seat runs inside a database transaction — the
+              payment, seat, and booking rows all commit together, or nothing
+              changes at all.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="f-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M12 12c2.8 0 5-2.2 5-5s-2.2-5-5-5-5 2.2-5 5 2.2 5 5 5zM4 21c0-4 3.6-7 8-7s8 3 8 7"
+                />
+              </svg>
+            </div>
+            <h3>Your bookings, wherever you sign in</h3>
+            <p>
+              Register once and every confirmed seat, cancellation, and refund
+              status stays attached to your account, not your browser.
+            </p>
+          </div>
+        </section>
+
+        <section id="previewSection">
+          <div class="section-head">
+            <div class="section-title grow">Tonight's departures</div>
+            <div class="section-note">Sign in to select a seat</div>
+          </div>
+          <div id="previewFlights" class="flight-list">
+            <div class="skeleton"></div>
+            <div class="skeleton"></div>
+          </div>
+        </section>
+
+        <section id="authSection">
+          <div class="section-title" style="margin-bottom: 16px">Account</div>
+          <div class="card auth-card">
+            <div class="auth-tabs">
+              <button
+                id="tabLogin"
+                class="active"
+                onclick="setAuthTab('login')"
+              >
+                Log in
+              </button>
+              <button id="tabRegister" onclick="setAuthTab('register')">
+                Register
+              </button>
+            </div>
+
+            <div>
+              <label for="email">Email</label>
+              <input
+                type="email"
+                id="email"
+                placeholder="you@example.com"
+                autocomplete="username"
+              />
+              <label for="password">Password</label>
+              <input
+                type="password"
+                id="password"
+                placeholder="••••••••"
+                autocomplete="current-password"
+              />
+            </div>
+
+            <details class="advanced">
+              <summary>API base URL</summary>
+              <input
+                type="text"
+                id="apiBase"
+                value="https://skylock-api.onrender.com"
                 class="mono"
               />
             </details>
