@@ -1,32 +1,44 @@
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.application import MIMEApplication
+import base64
+import httpx
 from app.logging_config import logger
 from app.config import settings
+
+RESEND_API_URL = "https://api.resend.com/emails"
 
 
 def send_email(to: str, subject: str, body: str, attachment_bytes: bytes = None, attachment_filename: str = None):
     """
-    Sends a real email via Gmail SMTP, optionally with a file attached (e.g. PDF ticket).
+    Sends a real email via Resend's HTTP API (port 443).
+    Raw SMTP (ports 25/465/587) is blocked on Render's free tier, so we go
+    over plain HTTPS instead — same effect, no platform restriction.
     Falls back to logging the error if delivery fails.
     """
+    payload = {
+        "from": settings.resend_from_email,
+        "to": [to],
+        "subject": subject,
+        "text": body,
+    }
+
+    if attachment_bytes and attachment_filename:
+        payload["attachments"] = [
+            {
+                "filename": attachment_filename,
+                "content": base64.b64encode(attachment_bytes).decode("utf-8"),
+            }
+        ]
+
     try:
-        msg = MIMEMultipart()
-        msg["Subject"] = subject
-        msg["From"] = settings.smtp_email
-        msg["To"] = to
-        msg.attach(MIMEText(body, "plain"))
-
-        if attachment_bytes and attachment_filename:
-            part = MIMEApplication(attachment_bytes, Name=attachment_filename)
-            part["Content-Disposition"] = f'attachment; filename="{attachment_filename}"'
-            msg.attach(part)
-
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(settings.smtp_email, settings.smtp_app_password)
-            server.sendmail(settings.smtp_email, [to], msg.as_string())
-
+        response = httpx.post(
+            RESEND_API_URL,
+            headers={
+                "Authorization": f"Bearer {settings.resend_api_key}",
+                "Content-Type": "application/json",
+            },
+            json=payload,
+            timeout=15,
+        )
+        response.raise_for_status()
         logger.info(f"[EMAIL SENT] To: {to} | Subject: {subject}" + (" | with attachment" if attachment_bytes else ""))
     except Exception as e:
         logger.error(f"[EMAIL FAILED] To: {to} | Subject: {subject} | Error: {e}")
