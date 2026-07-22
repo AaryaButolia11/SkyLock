@@ -40,6 +40,11 @@ def send_email(to: str, subject: str, body: str, attachment_bytes: bytes = None,
         )
         response.raise_for_status()
         logger.info(f"[EMAIL SENT] To: {to} | Subject: {subject}" + (" | with attachment" if attachment_bytes else ""))
+    except httpx.HTTPStatusError as e:
+        logger.error(
+            f"[EMAIL FAILED] To: {to} | Subject: {subject} | "
+            f"Status: {e.response.status_code} | Body: {e.response.text}"
+        )
     except Exception as e:
         logger.error(f"[EMAIL FAILED] To: {to} | Subject: {subject} | Error: {e}")
 
