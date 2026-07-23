@@ -639,7 +639,8 @@
       .chat-bubble p { margin: 0 0 6px; }
       .chat-bubble p:last-child { margin-bottom: 0; }
       .chat-bubble strong { font-weight: 700; }
-      .chat-bubble table { border-collapse: collapse; width: 100%; margin: 6px 0; font-size: .78rem; }
+      .chat-bubble-table-wrapper { overflow-x: auto; max-width: 100%; margin: 6px 0; }
+      .chat-bubble table { border-collapse: collapse; width: 100%; font-size: .78rem; white-space: nowrap; }
       .chat-bubble th, .chat-bubble td { padding: 5px 8px; border: 1px solid rgba(11,58,99,.12); text-align: left; }
       .chat-bubble.bot th { background: rgba(47,124,246,.08); font-weight: 700; }
 
@@ -2266,7 +2267,7 @@
               );
             if (rows.length) {
               html +=
-                "<table><thead><tr>" +
+                '<div class="chat-bubble-table-wrapper"><table><thead><tr>' +
                 rows[0].map((c) => `<th>${c}</th>`).join("") +
                 "</tr></thead><tbody>";
               for (let r = 1; r < rows.length; r++) {
@@ -2275,7 +2276,7 @@
                   rows[r].map((c) => `<td>${c}</td>`).join("") +
                   "</tr>";
               }
-              html += "</tbody></table>";
+              html += "</tbody></table></div>";
             }
             continue;
           }
