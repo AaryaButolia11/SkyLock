@@ -233,7 +233,7 @@
         backdrop-filter:blur(16px) saturate(160%);
         box-shadow:var(--shadow-card);
       }
-      .auth-card{ max-width:520px; }
+      .auth-card{ max-width:520px; margin:0 auto; }
       .auth-tabs{
         display:flex; gap:6px; margin:0 auto 22px;
         background:rgba(255,255,255,.55); border:1px solid var(--border-glass);
@@ -960,7 +960,7 @@
               <input
                 type="text"
                 id="apiBase"
-                value="https://skylock-api-24gd.onrender.com"
+                value="http://127.0.0.1:8000"
                 class="mono"
               />
             </details>
@@ -1302,7 +1302,6 @@
         updateChatStatusLabel();
         if (typeof chatMessages !== "undefined" && !chatMessages.length)
           renderChatMessages();
-        renderChatMessages();
       }
 
       function setMsg(elId, text, ok) {
@@ -2234,9 +2233,10 @@
         html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
         return html;
       }
+
       function renderChatMessages() {
         const body = document.getElementById("chatBody");
-        if (!body) return; // chat widget not in the DOM yet (e.g. called during early init) — skip safely
+
         if (!chatMessages.length) {
           const suggestions = token
             ? CHAT_SUGGESTIONS_AUTH
