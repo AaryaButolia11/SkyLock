@@ -610,6 +610,10 @@
         color: var(--text);
         border-bottom-left-radius: 4px;
         box-shadow: 0 2px 8px -2px rgba(11,58,99,.1);
+        /* Wider ceiling than the base .chat-bubble rule above, so replies that
+           contain a table (or other wide content) get more room before the
+           table's own horizontal scroll wrapper needs to kick in. */
+        max-width: 92%;
       }
       .chat-bubble.user {
         background: linear-gradient(135deg, var(--blue-primary), var(--blue-primary-hi, var(--blue-primary)));
@@ -625,8 +629,33 @@
       .chat-bubble p { margin: 0 0 6px; }
       .chat-bubble p:last-child { margin-bottom: 0; }
       .chat-bubble strong { font-weight: 700; }
-      .chat-bubble table { border-collapse: collapse; width: 100%; margin: 6px 0; font-size: .78rem; }
-      .chat-bubble th, .chat-bubble td { padding: 5px 8px; border: 1px solid rgba(11,58,99,.12); text-align: left; }
+
+      /* Scrollable wrapper around any markdown table rendered in a chat bubble.
+         Without this, wide tables (many columns, e.g. booking summaries) push
+         past the rounded panel edges instead of staying contained. */
+      .chat-table-wrap {
+        overflow-x: auto;
+        max-width: 100%;
+        margin: 6px 0;
+        border-radius: 8px;
+        -webkit-overflow-scrolling: touch;
+      }
+      .chat-table-wrap::-webkit-scrollbar { height: 6px; }
+      .chat-table-wrap::-webkit-scrollbar-thumb { background: rgba(11,58,99,.15); border-radius: 999px; }
+
+      .chat-bubble table {
+        border-collapse: collapse;
+        width: max-content;
+        min-width: 100%;
+        margin: 0;
+        font-size: .78rem;
+      }
+      .chat-bubble th, .chat-bubble td {
+        padding: 5px 8px;
+        border: 1px solid rgba(11,58,99,.12);
+        text-align: left;
+        white-space: nowrap;
+      }
       .chat-bubble.bot th { background: rgba(47,124,246,.08); font-weight: 700; }
 
       .chat-typing {
@@ -2307,7 +2336,10 @@
           html += "</tr>";
         });
         html += "</tbody></table>";
-        return html;
+        // Wrap in a horizontally-scrollable container so wide tables (many
+        // columns) scroll within the chat bubble instead of overflowing past
+        // the panel's rounded edges.
+        return `<div class="chat-table-wrap">${html}</div>`;
       }
 
       // Safe formatter: text is HTML-escaped first, then re-parsed for a small,
