@@ -1302,6 +1302,7 @@
         updateChatStatusLabel();
         if (typeof chatMessages !== "undefined" && !chatMessages.length)
           renderChatMessages();
+        renderChatMessages();
       }
 
       function setMsg(elId, text, ok) {
@@ -2233,10 +2234,9 @@
         html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
         return html;
       }
-
       function renderChatMessages() {
         const body = document.getElementById("chatBody");
-
+        if (!body) return; // chat widget not in the DOM yet (e.g. called during early init) — skip safely
         if (!chatMessages.length) {
           const suggestions = token
             ? CHAT_SUGGESTIONS_AUTH
