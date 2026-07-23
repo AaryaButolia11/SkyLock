@@ -260,6 +260,20 @@
       }
       input::placeholder{ color:var(--text-faint); }
 
+      .password-field{ position:relative; margin-bottom:14px; }
+      .password-field input{ margin-bottom:0; padding-right:42px; }
+      .password-toggle{
+        position:absolute; top:50%; right:6px; transform:translateY(-50%);
+        background:transparent; border:none; padding:6px; border-radius:8px;
+        display:flex; align-items:center; justify-content:center; cursor:pointer;
+        color:var(--text-faint);
+      }
+      .password-toggle:hover{ color:var(--blue-primary); background:rgba(47,124,246,.08); }
+      .password-toggle svg{ width:18px; height:18px; }
+      .password-toggle .icon-eye-off{ display:none; }
+      .password-toggle.showing .icon-eye{ display:none; }
+      .password-toggle.showing .icon-eye-off{ display:block; }
+
       details.advanced summary{
         cursor:pointer; color:var(--text-faint); font-size:.76rem; font-family:'JetBrains Mono',monospace;
         margin-bottom:10px; list-style:none;
@@ -947,12 +961,44 @@
                 autocomplete="username"
               />
               <label for="password">Password</label>
-              <input
-                type="password"
-                id="password"
-                placeholder="••••••••"
-                autocomplete="current-password"
-              />
+              <div class="password-field">
+                <input
+                  type="password"
+                  id="password"
+                  placeholder="••••••••"
+                  autocomplete="current-password"
+                />
+                <button
+                  type="button"
+                  class="password-toggle"
+                  onclick="togglePasswordVisibility('password', this)"
+                  aria-label="Show password"
+                  tabindex="-1"
+                >
+                  <svg
+                    class="icon-eye"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                  <svg
+                    class="icon-eye-off"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M17.94 17.94A10.94 10.94 0 0112 19c-7 0-11-7-11-7a20.5 20.5 0 015.06-5.94M9.9 4.24A10.4 10.4 0 0112 4c7 0 11 7 11 7a20.44 20.44 0 01-3.22 4.22M14.12 14.12a3 3 0 11-4.24-4.24"
+                    />
+                    <path d="M1 1l22 22" />
+                  </svg>
+                </button>
+              </div>
             </div>
 
             <details class="advanced">
@@ -961,7 +1007,6 @@
                 type="text"
                 id="apiBase"
                 value="https://skylock-api-24gd.onrender.com"
-                class="mono"
               />
             </details>
 
@@ -1208,6 +1253,17 @@
 
       function apiBase() {
         return document.getElementById("apiBase").value.replace(/\/$/, "");
+      }
+
+      function togglePasswordVisibility(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const showing = input.type === "text";
+        input.type = showing ? "password" : "text";
+        btn.classList.toggle("showing", !showing);
+        btn.setAttribute(
+          "aria-label",
+          showing ? "Show password" : "Hide password",
+        );
       }
 
       // Major Indian airports — code + city, used to populate origin/destination dropdowns
@@ -2464,8 +2520,15 @@
             onclick="sendChatMessage()"
             aria-label="Send message"
           >
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M2 21l21-9L2 3v7l15 2-15 2v7z" fill="currentColor" />
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M12 19V5M6 11l6-6 6 6" />
             </svg>
           </button>
         </div>
