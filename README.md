@@ -2,8 +2,8 @@
 
 **A backend-heavy flight booking system built to demonstrate real-world concurrency handling, transactional integrity, and applied AI agent design.**
 
-> 🔗 **Live demo:** `https://your-frontend.onrender.com` (replace with your deployed link)
-> 🔗 **API docs:** `https://your-backend.onrender.com/docs`
+> 🔗 **Live demo:** `https://skylock-frontend-m3fw.onrender.com`
+> 🔗 **API docs:** `https://skylock-api-24gd.onrender.com/docs`
 > ⚠️ Free-tier hosting: first request after ~15 min idle may take 30–60s to wake up.
 
 ---
