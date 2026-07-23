@@ -2270,19 +2270,95 @@
           .replaceAll(">", "&gt;");
       }
 
-      // Very small, safe formatter: escapes HTML first, then re-introduces
-      // just **bold** and line breaks so bot replies don't look like a wall of text.
+      function applyInlineFormatting(text) {
+        // **bold** only — kept intentionally minimal/safe since text is already HTML-escaped
+        return text.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+      }
+
+      function isTableRow(line) {
+        return line.startsWith("|") && line.endsWith("|") && line.length > 1;
+      }
+
+      // Matches a markdown separator row like |---|:---:|---|
+      function isTableSeparator(line) {
+        return /^\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?$/.test(line);
+      }
+
+      function splitTableRow(line) {
+        let l = line.trim();
+        if (l.startsWith("|")) l = l.slice(1);
+        if (l.endsWith("|")) l = l.slice(0, -1);
+        return l.split("|").map((cell) => cell.trim());
+      }
+
+      function buildTableHTML(tableLines) {
+        const header = splitTableRow(tableLines[0]);
+        const bodyRows = tableLines.slice(2).map(splitTableRow);
+        let html = "<table><thead><tr>";
+        header.forEach((h) => {
+          html += `<th>${applyInlineFormatting(h)}</th>`;
+        });
+        html += "</tr></thead><tbody>";
+        bodyRows.forEach((row) => {
+          html += "<tr>";
+          row.forEach((cell) => {
+            html += `<td>${applyInlineFormatting(cell)}</td>`;
+          });
+          html += "</tr>";
+        });
+        html += "</tbody></table>";
+        return html;
+      }
+
+      // Safe formatter: text is HTML-escaped first, then re-parsed for a small,
+      // known set of markdown constructs — paragraphs, **bold**, and pipe tables
+      // (since the agent frequently replies with markdown tables for flight/booking lists).
       function formatChatText(raw) {
         const escaped = escapeHTML(raw);
-        const withBold = escaped.replace(
-          /\*\*(.+?)\*\*/g,
-          "<strong>$1</strong>",
-        );
-        const paragraphs = withBold
-          .split(/\n{2,}/)
-          .map((p) => `<p>${p.replace(/\n/g, "<br>")}</p>`)
-          .join("");
-        return paragraphs || `<p>${withBold}</p>`;
+        const lines = escaped.split("\n");
+        let html = "";
+        let paragraphBuffer = [];
+        let i = 0;
+
+        function flushParagraph() {
+          if (paragraphBuffer.length) {
+            const text = paragraphBuffer.join(" ").trim();
+            if (text) html += `<p>${applyInlineFormatting(text)}</p>`;
+            paragraphBuffer = [];
+          }
+        }
+
+        while (i < lines.length) {
+          const trimmed = lines[i].trim();
+
+          if (trimmed === "") {
+            flushParagraph();
+            i++;
+            continue;
+          }
+
+          // Table block: a row followed immediately by a separator row (|---|---|)
+          if (
+            isTableRow(trimmed) &&
+            i + 1 < lines.length &&
+            isTableSeparator(lines[i + 1].trim())
+          ) {
+            flushParagraph();
+            const tableLines = [trimmed, lines[i + 1].trim()];
+            i += 2;
+            while (i < lines.length && isTableRow(lines[i].trim())) {
+              tableLines.push(lines[i].trim());
+              i++;
+            }
+            html += buildTableHTML(tableLines);
+            continue;
+          }
+
+          paragraphBuffer.push(trimmed);
+          i++;
+        }
+        flushParagraph();
+        return html || "<p></p>";
       }
 
       function toggleChat() {
