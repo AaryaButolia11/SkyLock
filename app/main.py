@@ -11,9 +11,11 @@ from app.redis_client import redis
 from app.routers import auth, flights, bookings
 from app.logging_config import setup_logging, logger
 from fastapi.middleware.cors import CORSMiddleware
+from app.routers import auth, flights, bookings, agent
 
 app = FastAPI(title="SkyLock - Flight Booking System")
 
+app.include_router(agent.router)
 app.include_router(auth.router)
 app.include_router(flights.router)
 app.include_router(bookings.router)
@@ -28,6 +30,8 @@ app.add_middleware(
         "https://skylock-frontend-m3fw.onrender.com",
         "http://127.0.0.1:8000",   # local dev
         "http://localhost:8000",   # local dev
+        "http://localhost:5000",   # local dev
+        "http://localhost:5500",   # local dev
     ],
     allow_credentials=True,
     allow_methods=["*"],
