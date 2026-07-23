@@ -2236,6 +2236,7 @@
 
       function renderChatMessages() {
         const body = document.getElementById("chatBody");
+        if (!body) return; // chat widget not in the DOM yet — skip safely instead of crashing
 
         if (!chatMessages.length) {
           const suggestions = token
