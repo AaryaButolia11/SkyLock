@@ -2186,7 +2186,10 @@
         if (chatOpen) {
           chatHasOpenedOnce = true;
           localStorage.setItem("skylock_chat_seen", "1");
-          document.getElementById("chatFabBadge").style.display = "none";
+          const chatBadge = document.getElementById("chatFabBadge");
+          if (chatBadge) {
+            chatBadge.style.display = "none";
+          }
           renderChatMessages();
           setTimeout(() => document.getElementById("chatInput").focus(), 200);
         }
@@ -2428,9 +2431,10 @@
       }
 
       // draw attention to the assistant with a small badge until it's opened once
-      document.getElementById("chatFabBadge").style.display = chatHasOpenedOnce
-        ? "none"
-        : "block";
+      const chatBadge = document.getElementById("chatFabBadge");
+      if (chatBadge) {
+        chatBadge.style.display = chatHasOpenedOnce ? "none" : "block";
+      }
     </script>
 
     <!-- ============================================================ -->
