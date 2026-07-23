@@ -2427,12 +2427,18 @@
         showTypingIndicator();
 
         try {
-          const { ok, data } = await apiFetch("/assistant/chat", {
+          const { ok, data } = await apiFetch("/agent/chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               message: text,
-              history: chatMessages.slice(-10), // small rolling window for context
+              chat_history: chatMessages
+                .filter((m) => m.role === "user" || m.role === "bot")
+                .slice(-10)
+                .map((m) => ({
+                  role: m.role === "bot" ? "assistant" : "user",
+                  content: m.content,
+                })),
             }),
           });
 
@@ -2446,7 +2452,7 @@
               role: "error",
               content: reason
                 ? `Assistant error: ${reason}`
-                : "The assistant endpoint isn't reachable yet — this widget expects a POST /assistant/chat route on the backend.",
+                : "The assistant endpoint isn't reachable yet — this widget expects a POST /agent/chat route on the backend.",
             });
           } else {
             chatMessages.push({
