@@ -19,15 +19,21 @@ Rules:
 - Keep responses concise and conversational, like a helpful travel agent."""
 
 async def run_agent(message: str, chat_history: list, db, current_user) -> str:
-    llm = ChatGroq(
-        api_key=settings.groq_api_key,
-        model="openai/gpt-oss-120b",
-        temperature=0,
-    )
-
+    llm = ChatGroq(api_key=settings.groq_api_key, model="openai/gpt-oss-120b", temperature=0)
     tools = build_tools(db, current_user)
-    agent = create_react_agent(llm, tools, prompt=SYSTEM_PROMPT)
 
+    system_prompt = SYSTEM_PROMPT
+    if current_user is None:
+        system_prompt += (
+            "\n\nThe current user is NOT logged in. You can help them search flights and "
+            "check seat availability, but you have no booking tools available. If they ask "
+            "to book, lock a seat, or provide passenger details, tell them warmly that "
+            "they'll need to log in first to complete a booking, and offer to keep helping "
+            "them search in the meantime."
+        )
+
+    agent = create_react_agent(llm, tools, prompt=system_prompt)
+    # ... rest unchanged ...
     messages = []
     for msg in chat_history:
         if msg["role"] == "user":

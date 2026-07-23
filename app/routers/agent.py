@@ -6,15 +6,17 @@ from app.auth.dependencies import get_current_user
 from app.models.user import User
 from app.schemas.agent import ChatRequest, ChatResponse
 from app.services.agent_service import run_agent
+from app.auth.dependencies import get_current_user_optional
 
 router = APIRouter(prefix="/agent", tags=["agent"])
+
 
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat(
     req: ChatRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User | None = Depends(get_current_user_optional),
 ):
     try:
         history = [{"role": m.role, "content": m.content} for m in req.chat_history]

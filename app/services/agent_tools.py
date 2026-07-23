@@ -84,6 +84,26 @@ def build_tools(db, current_user):
 
         return "\n".join(lines) if lines else "All visible seats are currently locked by other users — try again shortly."
 
+    # Define read-only tools available to everyone
+    read_only_tools = [
+        StructuredTool.from_function(
+            coroutine=search_flights, 
+            name="search_flights", 
+            description="Search for flights between two airport codes, optionally on a specific date (YYYY-MM-DD).", 
+            args_schema=SearchFlightsInput
+        ),
+        StructuredTool.from_function(
+            coroutine=get_seats, 
+            name="get_available_seats", 
+            description="List available seats and their prices for a given flight_id.", 
+            args_schema=GetSeatsInput
+        ),
+    ]
+
+    # Security Boundary: If there is no authenticated user, only return the read-only tools.
+    if current_user is None:
+        return read_only_tools
+
     # ---------- Tool 3: lock a seat ----------
     class LockSeatInput(BaseModel):
         flight_id: int
@@ -161,9 +181,18 @@ def build_tools(db, current_user):
             f"seat {seat.seat_number}, passenger {full_name}, ₹{fare} paid. Booking ID: {booking.id}."
         )
 
-    return [
-        StructuredTool.from_function(coroutine=search_flights, name="search_flights", description="Search for flights between two airport codes, optionally on a specific date (YYYY-MM-DD).", args_schema=SearchFlightsInput),
-        StructuredTool.from_function(coroutine=get_seats, name="get_available_seats", description="List available seats and their prices for a given flight_id.", args_schema=GetSeatsInput),
-        StructuredTool.from_function(coroutine=lock_seat, name="lock_seat", description="Temporarily lock a specific seat before booking. Must be called before book_seat.", args_schema=LockSeatInput),
-        StructuredTool.from_function(coroutine=book_seat, name="book_seat", description="Confirm and pay for a locked seat, given passenger details. Only call after lock_seat succeeded and you have collected full_name, age, gender, and meal_preference from the user.", args_schema=BookSeatInput),
+    # Return read-only + mutation tools for authenticated users
+    return read_only_tools + [
+        StructuredTool.from_function(
+            coroutine=lock_seat, 
+            name="lock_seat", 
+            description="Temporarily lock a specific seat before booking. Must be called before book_seat.", 
+            args_schema=LockSeatInput
+        ),
+        StructuredTool.from_function(
+            coroutine=book_seat, 
+            name="book_seat", 
+            description="Confirm and pay for a locked seat, given passenger details. Only call after lock_seat succeeded and you have collected full_name, age, gender, and meal_preference from the user.", 
+            args_schema=BookSeatInput
+        ),
     ]

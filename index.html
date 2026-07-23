@@ -610,10 +610,6 @@
         color: var(--text);
         border-bottom-left-radius: 4px;
         box-shadow: 0 2px 8px -2px rgba(11,58,99,.1);
-        /* Wider ceiling than the base .chat-bubble rule above, so replies that
-           contain a table (or other wide content) get more room before the
-           table's own horizontal scroll wrapper needs to kick in. */
-        max-width: 92%;
       }
       .chat-bubble.user {
         background: linear-gradient(135deg, var(--blue-primary), var(--blue-primary-hi, var(--blue-primary)));
@@ -629,33 +625,8 @@
       .chat-bubble p { margin: 0 0 6px; }
       .chat-bubble p:last-child { margin-bottom: 0; }
       .chat-bubble strong { font-weight: 700; }
-
-      /* Scrollable wrapper around any markdown table rendered in a chat bubble.
-         Without this, wide tables (many columns, e.g. booking summaries) push
-         past the rounded panel edges instead of staying contained. */
-      .chat-table-wrap {
-        overflow-x: auto;
-        max-width: 100%;
-        margin: 6px 0;
-        border-radius: 8px;
-        -webkit-overflow-scrolling: touch;
-      }
-      .chat-table-wrap::-webkit-scrollbar { height: 6px; }
-      .chat-table-wrap::-webkit-scrollbar-thumb { background: rgba(11,58,99,.15); border-radius: 999px; }
-
-      .chat-bubble table {
-        border-collapse: collapse;
-        width: max-content;
-        min-width: 100%;
-        margin: 0;
-        font-size: .78rem;
-      }
-      .chat-bubble th, .chat-bubble td {
-        padding: 5px 8px;
-        border: 1px solid rgba(11,58,99,.12);
-        text-align: left;
-        white-space: nowrap;
-      }
+      .chat-bubble table { border-collapse: collapse; width: 100%; margin: 6px 0; font-size: .78rem; }
+      .chat-bubble th, .chat-bubble td { padding: 5px 8px; border: 1px solid rgba(11,58,99,.12); text-align: left; }
       .chat-bubble.bot th { background: rgba(47,124,246,.08); font-weight: 700; }
 
       .chat-typing {
@@ -989,7 +960,7 @@
               <input
                 type="text"
                 id="apiBase"
-                value="https://skylock-api-24gd.onrender.com"
+                value="http://127.0.0.1:8000"
                 class="mono"
               />
             </details>
@@ -1225,113 +1196,6 @@
       BACKEND
     </footer>
 
-    <!-- ============================================================ -->
-    <!-- AI Booking Assistant — floating chat widget                   -->
-    <!-- ============================================================ -->
-    <button
-      class="chat-fab"
-      id="chatFab"
-      onclick="toggleChat()"
-      aria-label="Open SkyLock Assistant"
-      aria-expanded="false"
-    >
-      <svg
-        class="icon-chat"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <path
-          d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"
-        />
-      </svg>
-      <svg
-        class="icon-close"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <path d="M18 6L6 18M6 6l12 12" />
-      </svg>
-      <span class="chat-fab-badge" id="chatFabBadge"></span>
-    </button>
-
-    <div
-      class="chat-panel"
-      id="chatPanel"
-      role="dialog"
-      aria-label="SkyLock Assistant"
-    >
-      <div class="chat-header">
-        <div class="chat-header-avatar">
-          <svg viewBox="0 0 24 24" fill="none">
-            <path
-              d="M2 16l7-2 4-8 2 1-2.5 7.5L21 12l1 2-8 4 .5 4-2-1-1-4-6 2z"
-              fill="#fff"
-            />
-          </svg>
-        </div>
-        <div class="chat-header-info">
-          <div class="name">SkyLock Assistant</div>
-          <div class="status">
-            <span class="dot"></span
-            ><span id="chatStatusLabel"
-              >Online — ask me about flights or bookings</span
-            >
-          </div>
-        </div>
-        <button
-          class="chat-header-clear"
-          onclick="clearChat()"
-          aria-label="Clear conversation"
-          title="Clear conversation"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path
-              d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m2 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"
-            />
-          </svg>
-        </button>
-      </div>
-
-      <div class="chat-body" id="chatBody"></div>
-
-      <div class="chat-footer" id="chatFooter">
-        <div class="chat-input-row">
-          <textarea
-            id="chatInput"
-            rows="1"
-            placeholder="Ask about flights, seats, refunds…"
-            onkeydown="handleChatKeydown(event)"
-            oninput="autoGrowChatInput(this)"
-          ></textarea>
-          <button
-            class="chat-send-btn"
-            id="chatSendBtn"
-            onclick="sendChatMessage()"
-            aria-label="Send message"
-          >
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M2 12l19-9-9 19-2-8-8-2z" fill="currentColor" />
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
-
     <script>
       let token = localStorage.getItem("skylock_token") || null;
       let currentFlightId = null;
@@ -1435,6 +1299,9 @@
         box.innerHTML = token
           ? '<span class="pill"><span class="live-dot"></span>Signed in</span>'
           : '<span class="pill">Not signed in</span>';
+        updateChatStatusLabel();
+        if (typeof chatMessages !== "undefined" && !chatMessages.length)
+          renderChatMessages();
       }
 
       function setMsg(elId, text, ok) {
@@ -2237,256 +2104,50 @@
         loadMyBookings();
       }
 
-      updateAuthUI();
-      populateAirportDropdowns();
-      if (token) {
-        showApp();
-        loadAllFlights();
-        loadMyBookings();
-      } else {
-        showLanding();
-        loadPreviewFlights();
-      }
-    </script>
-
-    <script>
-      /* ============================================================ */
-      /* AI Booking Assistant — chat logic                             */
-      /* Isolated in its own script block so nothing above is touched. */
-      /* Assumes a backend route: POST /assistant/chat                 */
-      /*   body:  { message: string, history: [{role, content}] }      */
-      /*   reply: { reply: string }                                    */
-      /* If that route doesn't exist yet on your FastAPI backend, the  */
-      /* widget still renders and degrades to a clear inline error —   */
-      /* it won't throw or break the rest of the page.                 */
-      /* ============================================================ */
-
-      const CHAT_ICON_BOT = `<svg viewBox="0 0 24 24" fill="none"><path d="M2 16l7-2 4-8 2 1-2.5 7.5L21 12l1 2-8 4 .5 4-2-1-1-4-6 2z" fill="#fff"/></svg>`;
-      const CHAT_ICON_ASK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>`;
-
-      const CHAT_SUGGESTIONS = [
-        "What flights go from DEL to BOM?",
-        "How do I cancel a booking?",
-        "What's the refund policy?",
-        "Show me my upcoming bookings",
-      ];
-
+      // ============================================================
+      // AI Booking Assistant — floating chat widget
+      // ============================================================
       let chatOpen = false;
-      let chatMessages = loadChatHistory(); // [{role:'user'|'bot', content:string}]
-      let chatBusy = false;
+      let chatMessages = []; // [{role: 'user'|'assistant', content: string}]
+      let chatLoading = false;
+      let chatHasOpenedOnce = localStorage.getItem("skylock_chat_seen") === "1";
 
-      function loadChatHistory() {
-        try {
-          const raw = localStorage.getItem("skylock_chat_history");
-          return raw ? JSON.parse(raw) : [];
-        } catch (e) {
-          return [];
-        }
-      }
-      function saveChatHistory() {
-        try {
-          localStorage.setItem(
-            "skylock_chat_history",
-            JSON.stringify(chatMessages),
-          );
-        } catch (e) {}
-      }
-
-      function escapeHTML(str) {
-        return String(str)
-          .replaceAll("&", "&amp;")
-          .replaceAll("<", "&lt;")
-          .replaceAll(">", "&gt;");
-      }
-
-      function applyInlineFormatting(text) {
-        // **bold** only — kept intentionally minimal/safe since text is already HTML-escaped
-        return text.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-      }
-
-      function isTableRow(line) {
-        return line.startsWith("|") && line.endsWith("|") && line.length > 1;
-      }
-
-      // Matches a markdown separator row like |---|:---:|---|
-      function isTableSeparator(line) {
-        return /^\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?$/.test(line);
-      }
-
-      function splitTableRow(line) {
-        let l = line.trim();
-        if (l.startsWith("|")) l = l.slice(1);
-        if (l.endsWith("|")) l = l.slice(0, -1);
-        return l.split("|").map((cell) => cell.trim());
-      }
-
-      function buildTableHTML(tableLines) {
-        const header = splitTableRow(tableLines[0]);
-        const bodyRows = tableLines.slice(2).map(splitTableRow);
-        let html = "<table><thead><tr>";
-        header.forEach((h) => {
-          html += `<th>${applyInlineFormatting(h)}</th>`;
-        });
-        html += "</tr></thead><tbody>";
-        bodyRows.forEach((row) => {
-          html += "<tr>";
-          row.forEach((cell) => {
-            html += `<td>${applyInlineFormatting(cell)}</td>`;
-          });
-          html += "</tr>";
-        });
-        html += "</tbody></table>";
-        // Wrap in a horizontally-scrollable container so wide tables (many
-        // columns) scroll within the chat bubble instead of overflowing past
-        // the panel's rounded edges.
-        return `<div class="chat-table-wrap">${html}</div>`;
-      }
-
-      // Safe formatter: text is HTML-escaped first, then re-parsed for a small,
-      // known set of markdown constructs — paragraphs, **bold**, and pipe tables
-      // (since the agent frequently replies with markdown tables for flight/booking lists).
-      function formatChatText(raw) {
-        const escaped = escapeHTML(raw);
-        const lines = escaped.split("\n");
-        let html = "";
-        let paragraphBuffer = [];
-        let i = 0;
-
-        function flushParagraph() {
-          if (paragraphBuffer.length) {
-            const text = paragraphBuffer.join(" ").trim();
-            if (text) html += `<p>${applyInlineFormatting(text)}</p>`;
-            paragraphBuffer = [];
-          }
-        }
-
-        while (i < lines.length) {
-          const trimmed = lines[i].trim();
-
-          if (trimmed === "") {
-            flushParagraph();
-            i++;
-            continue;
-          }
-
-          // Table block: a row followed immediately by a separator row (|---|---|)
-          if (
-            isTableRow(trimmed) &&
-            i + 1 < lines.length &&
-            isTableSeparator(lines[i + 1].trim())
-          ) {
-            flushParagraph();
-            const tableLines = [trimmed, lines[i + 1].trim()];
-            i += 2;
-            while (i < lines.length && isTableRow(lines[i].trim())) {
-              tableLines.push(lines[i].trim());
-              i++;
-            }
-            html += buildTableHTML(tableLines);
-            continue;
-          }
-
-          paragraphBuffer.push(trimmed);
-          i++;
-        }
-        flushParagraph();
-        return html || "<p></p>";
-      }
+      const CHAT_SUGGESTIONS_GUEST = [
+        "Flights from DEL to BOM",
+        "Show me flights to Goa",
+        "Cheapest flight from BLR",
+      ];
+      const CHAT_SUGGESTIONS_AUTH = [
+        "Book me a flight from DEL to BOM",
+        "What flights go to Jaipur?",
+        "Find me a business class seat",
+      ];
 
       function toggleChat() {
         chatOpen = !chatOpen;
         document.getElementById("chatFab").classList.toggle("open", chatOpen);
         document.getElementById("chatPanel").classList.toggle("open", chatOpen);
-        document
-          .getElementById("chatFab")
-          .setAttribute("aria-expanded", String(chatOpen));
-
         if (chatOpen) {
-          // first open ever — dismiss the "new feature" badge permanently
+          chatHasOpenedOnce = true;
           localStorage.setItem("skylock_chat_seen", "1");
           document.getElementById("chatFabBadge").style.display = "none";
-          renderChatBody();
-          setTimeout(() => {
-            const input = document.getElementById("chatInput");
-            if (input && !isChatGated()) input.focus();
-          }, 220);
+          renderChatMessages();
+          setTimeout(() => document.getElementById("chatInput").focus(), 200);
         }
       }
 
-      function isChatGated() {
-        return !token;
+      function updateChatStatusLabel() {
+        const label = document.getElementById("chatStatusLabel");
+        if (!label) return;
+        label.textContent = token
+          ? "Online · ready to book"
+          : "Online · browsing as guest";
       }
 
-      function renderChatBody() {
-        const body = document.getElementById("chatBody");
-        const footer = document.getElementById("chatFooter");
-
-        if (isChatGated()) {
-          footer.style.display = "none";
-          body.innerHTML = `
-        <div class="chat-login-gate">
-          <div class="chat-empty-icon">${CHAT_ICON_ASK}</div>
-          <div class="chat-empty-title">Sign in to chat</div>
-          <div class="chat-empty-sub">Log in so the assistant can look up your flights and bookings for you.</div>
-          <button class="btn-primary" onclick="toggleChat(); scrollToAuth();">Log in</button>
-        </div>`;
-          return;
-        }
-
-        footer.style.display = "block";
-
-        if (!chatMessages.length) {
-          body.innerHTML = `
-        <div class="chat-empty">
-          <div class="chat-empty-icon">${CHAT_ICON_ASK}</div>
-          <div class="chat-empty-title">Ask me anything about SkyLock</div>
-          <div class="chat-empty-sub">Flight availability, seat locks, cancellations, refunds — I can help.</div>
-          <div class="chat-suggestions">
-            ${CHAT_SUGGESTIONS.map((s) => `<span class="chat-suggestion-chip" onclick="useSuggestion(this)">${escapeHTML(s)}</span>`).join("")}
-          </div>
-        </div>`;
-          return;
-        }
-
-        body.innerHTML = chatMessages.map((m) => chatRowHTML(m)).join("");
-        scrollChatToBottom();
-      }
-
-      function chatRowHTML(m) {
-        if (m.role === "user") {
-          const initial = (localStorage.getItem("skylock_last_email") || "U")
-            .charAt(0)
-            .toUpperCase();
-          return `
-        <div class="chat-row user">
-          <div class="chat-avatar-sm user">${initial}</div>
-          <div class="chat-bubble user">${formatChatText(m.content)}</div>
-        </div>`;
-        }
-        if (m.role === "error") {
-          return `
-        <div class="chat-row">
-          <div class="chat-avatar-sm bot">${CHAT_ICON_BOT}</div>
-          <div class="chat-bubble error">${formatChatText(m.content)}</div>
-        </div>`;
-        }
-        return `
-      <div class="chat-row">
-        <div class="chat-avatar-sm bot">${CHAT_ICON_BOT}</div>
-        <div class="chat-bubble bot">${formatChatText(m.content)}</div>
-      </div>`;
-      }
-
-      function scrollChatToBottom() {
-        const body = document.getElementById("chatBody");
-        body.scrollTop = body.scrollHeight;
-      }
-
-      function useSuggestion(el) {
-        const input = document.getElementById("chatInput");
-        input.value = el.textContent;
-        input.focus();
-        autoGrowChatInput(input);
+      function clearChat() {
+        chatMessages = [];
+        renderChatMessages();
+        document.getElementById("chatInput").focus();
       }
 
       function autoGrowChatInput(el) {
@@ -2501,38 +2162,167 @@
         }
       }
 
-      function showTypingIndicator() {
-        const body = document.getElementById("chatBody");
-        const row = document.createElement("div");
-        row.className = "chat-row";
-        row.id = "chatTypingRow";
-        row.innerHTML = `
-      <div class="chat-avatar-sm bot">${CHAT_ICON_BOT}</div>
-      <div class="chat-typing"><span></span><span></span><span></span></div>`;
-        body.appendChild(row);
-        scrollChatToBottom();
+      function useSuggestion(text) {
+        document.getElementById("chatInput").value = text;
+        sendChatMessage();
       }
 
-      function removeTypingIndicator() {
-        const row = document.getElementById("chatTypingRow");
-        if (row) row.remove();
+      // Minimal markdown renderer — just enough for what the agent actually
+      // produces: **bold**, pipe tables, and paragraph breaks. Deliberately not
+      // a full markdown parser; escapes HTML first so model output can't inject markup.
+      function renderMarkdownLite(text) {
+        const escape = (s) =>
+          s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        let src = escape(text);
+
+        const lines = src.split("\n");
+        let html = "";
+        let i = 0;
+        let paragraphBuf = [];
+
+        function flushParagraph() {
+          if (paragraphBuf.length) {
+            html += "<p>" + paragraphBuf.join("<br>") + "</p>";
+            paragraphBuf = [];
+          }
+        }
+
+        while (i < lines.length) {
+          const line = lines[i];
+          if (/^\s*\|.*\|\s*$/.test(line)) {
+            flushParagraph();
+            const tableLines = [];
+            while (i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i])) {
+              tableLines.push(lines[i]);
+              i++;
+            }
+            const rows = tableLines
+              .filter((l) => !/^\s*\|[\s:|-]+\|\s*$/.test(l)) // drop separator row
+              .map((l) =>
+                l
+                  .trim()
+                  .replace(/^\||\|$/g, "")
+                  .split("|")
+                  .map((c) => c.trim()),
+              );
+            if (rows.length) {
+              html +=
+                "<table><thead><tr>" +
+                rows[0].map((c) => `<th>${c}</th>`).join("") +
+                "</tr></thead><tbody>";
+              for (let r = 1; r < rows.length; r++) {
+                html +=
+                  "<tr>" +
+                  rows[r].map((c) => `<td>${c}</td>`).join("") +
+                  "</tr>";
+              }
+              html += "</tbody></table>";
+            }
+            continue;
+          }
+          if (line.trim() === "") {
+            flushParagraph();
+          } else {
+            paragraphBuf.push(line);
+          }
+          i++;
+        }
+        flushParagraph();
+
+        // bold
+        html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+        return html;
+      }
+
+      function renderChatMessages() {
+        const body = document.getElementById("chatBody");
+
+        if (!chatMessages.length) {
+          const suggestions = token
+            ? CHAT_SUGGESTIONS_AUTH
+            : CHAT_SUGGESTIONS_GUEST;
+          body.innerHTML = `
+        <div class="chat-empty">
+          <div class="chat-empty-icon">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M2 16l7-2 4-8 2 1-2.5 7.5L21 12l1 2-8 4 .5 4-2-1-1-4-6 2z" fill="#2f7cf6"/></svg>
+          </div>
+          <div class="chat-empty-title">Hi, I'm your SkyLock Assistant</div>
+          <div class="chat-empty-sub">
+            ${
+              token
+                ? "Tell me where you want to fly and I\u2019ll search, pick a seat, and book it for you."
+                : "Ask me about flights and routes — log in when you\u2019re ready to actually book one."
+            }
+          </div>
+          <div class="chat-suggestions">
+            ${suggestions.map((s) => `<span class="chat-suggestion-chip" onclick="useSuggestion('${s.replace(/'/g, "\\'")}')">${s}</span>`).join("")}
+          </div>
+        </div>`;
+          return;
+        }
+
+        body.innerHTML =
+          chatMessages
+            .map((m) => {
+              if (m.role === "user") {
+                const initial = (
+                  localStorage.getItem("skylock_email_hint") || "U"
+                )
+                  .charAt(0)
+                  .toUpperCase();
+                return `
+          <div class="chat-row user">
+            <div class="chat-avatar-sm user">${initial}</div>
+            <div class="chat-bubble user">${renderMarkdownLite(m.content)}</div>
+          </div>`;
+              }
+              if (m.role === "error") {
+                return `
+          <div class="chat-row">
+            <div class="chat-avatar-sm bot"><svg viewBox="0 0 24 24" fill="none"><path d="M2 16l7-2 4-8 2 1-2.5 7.5L21 12l1 2-8 4 .5 4-2-1-1-4-6 2z" fill="#fff"/></svg></div>
+            <div class="chat-bubble error">${renderMarkdownLite(m.content)}</div>
+          </div>`;
+              }
+              return `
+        <div class="chat-row">
+          <div class="chat-avatar-sm bot"><svg viewBox="0 0 24 24" fill="none"><path d="M2 16l7-2 4-8 2 1-2.5 7.5L21 12l1 2-8 4 .5 4-2-1-1-4-6 2z" fill="#fff"/></svg></div>
+          <div class="chat-bubble bot">${renderMarkdownLite(m.content)}</div>
+        </div>`;
+            })
+            .join("") +
+          (chatLoading
+            ? `
+      <div class="chat-row">
+        <div class="chat-avatar-sm bot"><svg viewBox="0 0 24 24" fill="none"><path d="M2 16l7-2 4-8 2 1-2.5 7.5L21 12l1 2-8 4 .5 4-2-1-1-4-6 2z" fill="#fff"/></svg></div>
+        <div class="chat-typing"><span></span><span></span><span></span></div>
+      </div>`
+            : "");
+
+        body.scrollTop = body.scrollHeight;
       }
 
       async function sendChatMessage() {
-        if (chatBusy || isChatGated()) return;
         const input = document.getElementById("chatInput");
         const text = input.value.trim();
-        if (!text) return;
+        if (!text || chatLoading) return;
+
+        if (token) {
+          const emailField = document.getElementById("email");
+          if (emailField && emailField.value)
+            localStorage.setItem("skylock_email_hint", emailField.value);
+        }
 
         chatMessages.push({ role: "user", content: text });
-        saveChatHistory();
         input.value = "";
         autoGrowChatInput(input);
-        renderChatBody();
-
-        chatBusy = true;
+        chatLoading = true;
         document.getElementById("chatSendBtn").disabled = true;
-        showTypingIndicator();
+        renderChatMessages();
+
+        const historyForApi = chatMessages
+          .filter((m) => m.role === "user" || m.role === "assistant")
+          .slice(0, -1) // exclude the message we just added — sent separately as `message`
+          .map((m) => ({ role: m.role, content: m.content }));
 
         try {
           const { ok, data } = await apiFetch("/agent/chat", {
@@ -2540,62 +2330,145 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               message: text,
-              chat_history: chatMessages
-                .filter((m) => m.role === "user" || m.role === "bot")
-                .slice(-10)
-                .map((m) => ({
-                  role: m.role === "bot" ? "assistant" : "user",
-                  content: m.content,
-                })),
+              chat_history: historyForApi,
             }),
           });
 
-          removeTypingIndicator();
+          chatLoading = false;
+          document.getElementById("chatSendBtn").disabled = false;
 
           if (!ok) {
-            const reason =
-              (data && (data.detail || (data.error && data.error.message))) ||
-              null;
             chatMessages.push({
               role: "error",
-              content: reason
-                ? `Assistant error: ${reason}`
-                : "The assistant endpoint isn't reachable yet — this widget expects a POST /agent/chat route on the backend.",
+              content:
+                extractError(data) || "Something went wrong. Please try again.",
             });
           } else {
-            chatMessages.push({
-              role: "bot",
-              content:
-                (data && data.reply) ||
-                "I didn't get a reply back — try again?",
-            });
+            chatMessages.push({ role: "assistant", content: data.reply });
           }
+          renderChatMessages();
+          document.getElementById("chatInput").focus();
         } catch (e) {
-          removeTypingIndicator();
+          chatLoading = false;
+          document.getElementById("chatSendBtn").disabled = false;
           chatMessages.push({
             role: "error",
-            content: "Couldn't reach the assistant — check your API base URL.",
+            content: "Couldn't reach the assistant — check the API is running.",
           });
-        } finally {
-          chatBusy = false;
-          document.getElementById("chatSendBtn").disabled = false;
-          saveChatHistory();
-          renderChatBody();
+          renderChatMessages();
         }
       }
 
-      function clearChat() {
-        chatMessages = [];
-        saveChatHistory();
-        renderChatBody();
+      updateAuthUI();
+      populateAirportDropdowns();
+      if (token) {
+        showApp();
+        loadAllFlights();
+        loadMyBookings();
+      } else {
+        showLanding();
+        loadPreviewFlights();
       }
 
-      // Show the "new feature" badge until the user opens the chat once.
-      if (!localStorage.getItem("skylock_chat_seen")) {
-        document.getElementById("chatFabBadge").style.display = "block";
-      } else {
-        document.getElementById("chatFabBadge").style.display = "none";
-      }
+      // draw attention to the assistant with a small badge until it's opened once
+      document.getElementById("chatFabBadge").style.display = chatHasOpenedOnce
+        ? "none"
+        : "block";
     </script>
+
+    <!-- ============================================================ -->
+    <!-- AI Booking Assistant — floating chat widget                   -->
+    <!-- ============================================================ -->
+    <button
+      class="chat-fab"
+      id="chatFab"
+      onclick="toggleChat()"
+      aria-label="Open SkyLock Assistant"
+    >
+      <svg
+        class="icon-chat"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path
+          d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
+        />
+      </svg>
+      <svg
+        class="icon-close"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.2"
+      >
+        <path d="M18 6L6 18M6 6l12 12" />
+      </svg>
+      <span class="chat-fab-badge" id="chatFabBadge"></span>
+    </button>
+
+    <div class="chat-panel" id="chatPanel">
+      <div class="chat-header">
+        <div class="chat-header-avatar">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path
+              d="M2 16l7-2 4-8 2 1-2.5 7.5L21 12l1 2-8 4 .5 4-2-1-1-4-6 2z"
+              fill="#fff"
+            />
+          </svg>
+        </div>
+        <div class="chat-header-info">
+          <div class="name">SkyLock Assistant</div>
+          <div class="status">
+            <span class="dot"></span
+            ><span id="chatStatusLabel">Online · ready to help</span>
+          </div>
+        </div>
+        <button
+          class="chat-header-clear"
+          onclick="clearChat()"
+          title="Clear conversation"
+          aria-label="Clear conversation"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <div class="chat-body" id="chatBody">
+        <!-- populated by renderChatMessages() -->
+      </div>
+
+      <div class="chat-footer">
+        <div class="chat-input-row">
+          <textarea
+            id="chatInput"
+            rows="1"
+            placeholder='Ask about flights, or say "book me a flight from DEL to BOM"…'
+            onkeydown="handleChatKeydown(event)"
+            oninput="autoGrowChatInput(this)"
+          ></textarea>
+          <button
+            class="chat-send-btn"
+            id="chatSendBtn"
+            onclick="sendChatMessage()"
+            aria-label="Send message"
+          >
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M2 21l21-9L2 3v7l15 2-15 2v7z" fill="currentColor" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

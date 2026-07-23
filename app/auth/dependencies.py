@@ -8,6 +8,7 @@ from app.auth.security import decode_access_token
 from app.models.user import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
 
 
 async def get_current_user(
@@ -36,6 +37,31 @@ async def get_current_user(
     return user
 
 
+async def get_current_user_optional(
+    token: str | None = Depends(oauth2_scheme_optional),
+    db: AsyncSession = Depends(get_db),
+) -> User | None:
+    """
+    Same as get_current_user, but never raises. Returns None if there's
+    no token, or if the token is missing/invalid/expired/points to a
+    user that no longer exists. Use this for routes that should work
+    for both guests and logged-in users (e.g. the AI agent chat).
+    """
+    if not token:
+        return None
+
+    payload = decode_access_token(token)
+    if payload is None:
+        return None
+
+    email = payload.get("sub")
+    if email is None:
+        return None
+
+    result = await db.execute(select(User).where(User.email == email))
+    return result.scalar_one_or_none()
+
+
 async def get_current_admin(current_user: User = Depends(get_current_user)) -> User:
     if not current_user.is_admin:
         raise HTTPException(
@@ -43,11 +69,14 @@ async def get_current_admin(current_user: User = Depends(get_current_user)) -> U
             detail="Admin privileges required",
         )
     return current_user
+
+
 '''
 get_current_admin depends on get_current_user — so it first verifies the JWT and fetches the user (same as before), then adds one more check: is is_admin true? If not, 403 Forbidden. Any route that needs admin-only access just uses Depends(get_current_admin) instead of Depends(get_current_user).
 '''
 
-
 '''
 OAuth2PasswordBearer tells FastAPI to expect a Authorization: Bearer <token> header and auto-generates the "Authorize" button in /docs. get_current_user is a dependency you'll drop into any route that needs to know who's calling it — e.g. POST /bookings will use this to know which user is booking, without trusting a user_id sent in the request body (never trust the client to tell you who they are).
+
+get_current_user_optional works the same way but is built on a second OAuth2PasswordBearer instance with auto_error=False, so a missing header resolves to None instead of raising 401. That's what lets /agent/chat serve both anonymous and logged-in users.
 '''
