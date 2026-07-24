@@ -135,3 +135,31 @@ Why the date range instead of ==: departure_time is a full timestamp; comparing 
 
 Test: GET /flights?origin=DEL&destination=BOM&departure_date=2026-08-01
 '''
+
+import time
+
+@router.get("/{flight_id}", response_model=FlightDetailOut)
+async def get_flight(flight_id: int, db: AsyncSession = Depends(get_db)):
+    t0 = time.time()
+    result = await db.execute(
+        select(Flight).options(selectinload(Flight.seats)).where(Flight.id == flight_id)
+    )
+    flight = result.scalar_one_or_none()
+    t1 = time.time()
+    logger.info(f"[TIMING] flight+seats query: {t1-t0:.2f}s")
+
+    if not flight:
+        raise HTTPException(status_code=404, detail="Flight not found")
+
+    seat_ids = [s.id for s in flight.seats]
+    lock_owners = get_seat_lock_owners_bulk(flight_id, seat_ids)
+    t2 = time.time()
+    logger.info(f"[TIMING] redis lock check: {t2-t1:.2f}s")
+
+    for seat in flight.seats:
+        seat.is_locked = lock_owners.get(seat.id) is not None
+        seat.price = calculate_fare(flight.origin, flight.destination, seat.seat_class, flight.departure_time)
+    t3 = time.time()
+    logger.info(f"[TIMING] price calc loop: {t3-t2:.2f}s")
+
+    return flight
