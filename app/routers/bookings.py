@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, WebSocket, WebSocketDisconnect
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -25,6 +25,7 @@ from app.services.seat_lock import (
 from fastapi.responses import Response
 from app.services.ticket_pdf import generate_ticket_pdf
 from app.models.passenger import Passenger
+from app.websocket_manager import manager
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
@@ -51,6 +52,10 @@ async def lock_seat(
             status_code=409,
             detail="Seat is currently locked by another user. Try again shortly.",
         )
+
+    # only broadcast once we actually know the lock succeeded — broadcasting
+    # unconditionally would tell other viewers a seat is locked even when it isn't
+    await manager.broadcast(req.flight_id, {"event": "seat_locked", "seat_id": req.seat_id})
 
     return SeatLockResponse(
         seat_id=req.seat_id, locked=True, expires_in_seconds=LOCK_TTL_SECONDS
@@ -140,6 +145,7 @@ async def confirm_booking(
 
     # 5. release the redis lock — booking is now permanent in postgres
     release_seat_lock(req.flight_id, req.seat_id, current_user.id)
+    await manager.broadcast(req.flight_id, {"event": "seat_booked", "seat_id": req.seat_id})
 
     # 6. re-fetch with payment + refund + passenger + flight eagerly loaded, so response
     #    serialization doesn't trigger an async lazy-load (fails outside a greenlet)
@@ -201,6 +207,7 @@ async def cancel_booking(
         db.add(new_refund)
 
     await db.commit()
+    await manager.broadcast(booking.flight_id, {"event": "seat_released", "seat_id": booking.seat_id})
 
     result = await db.execute(
         select(Booking)
@@ -296,15 +303,18 @@ async def lock_multiple_seats(
             # roll back any locks already acquired in this batch
             for sid in locked_so_far:
                 release_seat_lock(req.flight_id, sid, current_user.id)
+                await manager.broadcast(req.flight_id, {"event": "seat_released", "seat_id": sid})
             raise HTTPException(status_code=409, detail=f"Seat {seat_id} unavailable")
 
         acquired = acquire_seat_lock(req.flight_id, seat_id, current_user.id)
         if not acquired:
             for sid in locked_so_far:
                 release_seat_lock(req.flight_id, sid, current_user.id)
+                await manager.broadcast(req.flight_id, {"event": "seat_released", "seat_id": sid})
             raise HTTPException(status_code=409, detail=f"Seat {seat_id} is locked by another user")
 
         locked_so_far.append(seat_id)
+        await manager.broadcast(req.flight_id, {"event": "seat_locked", "seat_id": seat_id})
         responses.append(SeatLockResponse(seat_id=seat_id, locked=True, expires_in_seconds=LOCK_TTL_SECONDS))
 
     return responses
@@ -375,6 +385,7 @@ async def confirm_group_booking(
         await db.rollback()
         for seat_id in req.seat_ids:
             release_seat_lock(req.flight_id, seat_id, current_user.id)
+            await manager.broadcast(req.flight_id, {"event": "seat_released", "seat_id": seat_id})
         raise HTTPException(
             status_code=409,
             detail="One or more seats were already booked (conflict detected at database level)",
@@ -382,6 +393,7 @@ async def confirm_group_booking(
 
     for seat_id in req.seat_ids:
         release_seat_lock(req.flight_id, seat_id, current_user.id)
+        await manager.broadcast(req.flight_id, {"event": "seat_booked", "seat_id": seat_id})
 
     result = await db.execute(
         select(Booking)
@@ -398,3 +410,13 @@ async def confirm_group_booking(
     logger.info(f"Group booking confirmed: user={current_user.id} flight={req.flight_id} seats={req.seat_ids}")
 
     return GroupBookingOut(bookings=bookings, total_amount=round(total_amount, 2))
+
+
+@router.websocket("/ws/{flight_id}")
+async def seat_updates_ws(websocket: WebSocket, flight_id: int):
+    await manager.connect(flight_id, websocket)
+    try:
+        while True:
+            await websocket.receive_text()  # keep alive; we don't need incoming messages
+    except WebSocketDisconnect:
+        manager.disconnect(flight_id, websocket)

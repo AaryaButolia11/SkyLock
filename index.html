@@ -639,8 +639,7 @@
       .chat-bubble p { margin: 0 0 6px; }
       .chat-bubble p:last-child { margin-bottom: 0; }
       .chat-bubble strong { font-weight: 700; }
-      .chat-bubble-table-wrapper { overflow-x: auto; max-width: 100%; margin: 6px 0; }
-      .chat-bubble table { border-collapse: collapse; width: 100%; font-size: .78rem; white-space: nowrap; }
+      .chat-bubble table { border-collapse: collapse; width: 100%; margin: 6px 0; font-size: .78rem; }
       .chat-bubble th, .chat-bubble td { padding: 5px 8px; border: 1px solid rgba(11,58,99,.12); text-align: left; }
       .chat-bubble.bot th { background: rgba(47,124,246,.08); font-weight: 700; }
 
@@ -1007,7 +1006,8 @@
               <input
                 type="text"
                 id="apiBase"
-                value="https://skylock-api-24gd.onrender.com"
+                value="http://127.0.0.1:8000"
+                class="mono"
               />
             </details>
 
@@ -1486,6 +1486,7 @@
       function logout() {
         token = null;
         localStorage.removeItem("skylock_token");
+        closeSeatWebSocket();
         updateAuthUI();
         showLanding();
         loadPreviewFlights();
@@ -1659,6 +1660,71 @@
       let groupSelectedSeats = []; // [{id, number, price}]
       let lastSeatData = [];
 
+      // ---------- Live seat map updates over WebSocket ----------
+      let currentWs = null;
+
+      function connectSeatWebSocket(flightId) {
+        closeSeatWebSocket();
+
+        try {
+          const wsBase = apiBase().replace(/^http/, "ws");
+          currentWs = new WebSocket(`${wsBase}/bookings/ws/${flightId}`);
+
+          currentWs.onmessage = (event) => {
+            let msg;
+            try {
+              msg = JSON.parse(event.data);
+            } catch (e) {
+              return;
+            }
+
+            const seatEl = document.getElementById("seat-" + msg.seat_id);
+            if (!seatEl) return;
+
+            // don't override a seat the current user has actively selected themselves
+            if (
+              seatEl.classList.contains("selected") &&
+              msg.event === "seat_locked"
+            )
+              return;
+
+            if (msg.event === "seat_locked") {
+              seatEl.classList.remove("selected");
+              seatEl.classList.add("locked");
+              seatEl.onclick = null;
+            } else if (msg.event === "seat_booked") {
+              seatEl.classList.remove("locked", "selected");
+              seatEl.classList.add("booked");
+              seatEl.onclick = null;
+            } else if (msg.event === "seat_released") {
+              seatEl.classList.remove("locked", "booked");
+              const seatData = lastSeatData.find((s) => s.id === msg.seat_id);
+              if (seatData) {
+                const number = seatData.seat_number;
+                const price = seatData.price || 0;
+                seatEl.onclick = () =>
+                  handleSeatClick(msg.seat_id, number, price);
+              }
+            }
+          };
+
+          currentWs.onerror = () => {
+            /* fail silently — seat map still works via fetch-on-open */
+          };
+        } catch (e) {
+          /* WebSocket unsupported or connection failed — non-fatal, seat map still usable */
+        }
+      }
+
+      function closeSeatWebSocket() {
+        if (currentWs) {
+          currentWs.onmessage = null;
+          currentWs.onerror = null;
+          currentWs.close();
+          currentWs = null;
+        }
+      }
+
       function setBookingMode(mode) {
         bookingMode = mode;
         document
@@ -1704,6 +1770,7 @@
         lastSeatData = data.seats;
 
         renderSeatGrid();
+        connectSeatWebSocket(flightId);
         seatSection.scrollIntoView({ behavior: "smooth", block: "start" });
       }
 
@@ -2187,10 +2254,8 @@
         if (chatOpen) {
           chatHasOpenedOnce = true;
           localStorage.setItem("skylock_chat_seen", "1");
-          const chatBadge = document.getElementById("chatFabBadge");
-          if (chatBadge) {
-            chatBadge.style.display = "none";
-          }
+          const badge = document.getElementById("chatFabBadge");
+          if (badge) badge.style.display = "none";
           renderChatMessages();
           setTimeout(() => document.getElementById("chatInput").focus(), 200);
         }
@@ -2267,7 +2332,7 @@
               );
             if (rows.length) {
               html +=
-                '<div class="chat-bubble-table-wrapper"><table><thead><tr>' +
+                "<table><thead><tr>" +
                 rows[0].map((c) => `<th>${c}</th>`).join("") +
                 "</tr></thead><tbody>";
               for (let r = 1; r < rows.length; r++) {
@@ -2276,7 +2341,7 @@
                   rows[r].map((c) => `<td>${c}</td>`).join("") +
                   "</tr>";
               }
-              html += "</tbody></table></div>";
+              html += "</tbody></table>";
             }
             continue;
           }
@@ -2432,10 +2497,9 @@
       }
 
       // draw attention to the assistant with a small badge until it's opened once
-      const chatBadge = document.getElementById("chatFabBadge");
-      if (chatBadge) {
-        chatBadge.style.display = chatHasOpenedOnce ? "none" : "block";
-      }
+      const chatFabBadgeEl = document.getElementById("chatFabBadge");
+      if (chatFabBadgeEl)
+        chatFabBadgeEl.style.display = chatHasOpenedOnce ? "none" : "block";
     </script>
 
     <!-- ============================================================ -->
@@ -2533,7 +2597,7 @@
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <path d="M3 12l18 0M15 5l6 7-6 7" />
+              <path d="M12 19V5M6 11l6-6 6 6" />
             </svg>
           </button>
         </div>
